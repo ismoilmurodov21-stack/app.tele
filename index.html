@@ -68,6 +68,20 @@
             width: 100%; cursor: pointer;
         }
 
+        /* Admin Panel */
+        #admin-panel { display: none; padding: 15px; background: var(--card); margin: 10px; border-radius: 15px; }
+        input, textarea {
+            width: 100%; background: var(--bg); border: 1px solid var(--gray);
+            color: white; padding: 10px; margin-bottom: 10px; border-radius: 8px; box-sizing: border-box;
+        }
+        .file-label {
+            display: block; background: #3b82f6; color: white; padding: 12px;
+            text-align: center; border-radius: 10px; cursor: pointer; margin-bottom: 10px; font-weight: bold;
+        }
+        #file-input { display: none; }
+        .preview-area { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 10px; padding: 5px; }
+        .preview-img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
+
         /* Gallery Modal */
         #gallery-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -78,12 +92,6 @@
         .nav-btn { background: rgba(255,255,255,0.2); color: white; border: none; font-size: 30px; padding: 15px; border-radius: 50%; }
         .close-gallery { position: absolute; top: 30px; right: 20px; color: white; font-size: 30px; background: none; border: none; }
 
-        /* Admin Panel */
-        #admin-panel { display: none; padding: 15px; background: var(--card); margin: 10px; border-radius: 15px; }
-        input, textarea {
-            width: 100%; background: var(--bg); border: 1px solid var(--gray);
-            color: white; padding: 10px; margin-bottom: 10px; border-radius: 8px; box-sizing: border-box;
-        }
         .admin-toggle {
             position: fixed; bottom: 20px; right: 20px; background: #3b82f6;
             color: white; border: none; width: 50px; height: 50px; border-radius: 50%;
@@ -107,11 +115,15 @@
         <h3>Админ: Иловаи маҳсулот</h3>
         <input type="text" id="p-name" placeholder="Номи маҳсулот">
         <input type="text" id="p-price" placeholder="Нарх">
-        <textarea id="p-imgs" placeholder="Линкҳои аксҳоро бо вергул (,) ҷудо кунед (то 10 акс)"></textarea>
+        
+        <label class="file-label" for="file-input">🖼️ Интихоби аксҳо аз галерея</label>
+        <input type="file" id="file-input" accept="image/*" multiple onchange="handleFileSelect(this.files)">
+        <div class="preview-area" id="preview-area"></div>
+
         <button class="buy-btn" onclick="saveProduct()">Захира кардан</button>
         <hr>
         <h3>Админ: Реклама (Banner)</h3>
-        <input type="text" id="ad-img" placeholder="Линки акси реклама">
+        <input type="text" id="ad-img" placeholder="Линк ё боркунии акси реклама">
         <input type="text" id="ad-text" placeholder="Матни реклама">
         <button class="buy-btn" style="background:#3b82f6; color:white;" onclick="saveAd()">Намоиши Реклама</button>
         <button class="buy-btn" style="background:red; color:white; margin-top:5px;" onclick="clearData()">Тоза кардани ҳама</button>
@@ -137,11 +149,12 @@
         tg.ready();
         tg.expand();
 
-        const ADMIN_ID = 8406121228; // ID-и шумо
-        const ADMIN_USER = "ismoilmurodov21"; // Юзернейми шумо
+        const ADMIN_ID = 8406121228; 
+        const ADMIN_USER = "ismoilmurodov21"; 
 
         let currentPhotos = [];
         let currentIndex = 0;
+        let selectedBase64Files = [];
 
         if (tg.initDataUnsafe?.user?.id === ADMIN_ID) {
             document.getElementById('admin-btn').style.display = 'block';
@@ -152,16 +165,35 @@
             p.style.display = p.style.display === 'block' ? 'none' : 'block';
         }
 
+        // Функсияи хондани файлҳо аз галерея
+        function handleFileSelect(files) {
+            const previewArea = document.getElementById('preview-area');
+            previewArea.innerHTML = '';
+            selectedBase64Files = [];
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const base64 = e.target.result;
+                    selectedBase64Files.push(base64);
+                    
+                    const img = document.createElement('img');
+                    img.src = base64;
+                    img.className = 'preview-img';
+                    previewArea.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
         function saveProduct() {
             const name = document.getElementById('p-name').value;
             const price = document.getElementById('p-price').value;
-            const imgsInput = document.getElementById('p-imgs').value;
-            const imgsArray = imgsInput.split(',').map(s => s.trim()).filter(s => s !== "");
 
-            if (!name || imgsArray.length === 0) return alert("Ном ва аксро ворид кунед!");
+            if (!name || selectedBase64Files.length === 0) return alert("Ном ва аксҳоро интихоб кунед!");
 
             let products = JSON.parse(localStorage.getItem('it_products') || '[]');
-            products.push({ name, price, photos: imgsArray });
+            products.push({ name, price, photos: selectedBase64Files });
             localStorage.setItem('it_products', JSON.stringify(products));
             
             alert("Маҳсулот илова шуд!");
@@ -222,7 +254,7 @@
             const products = JSON.parse(localStorage.getItem('it_products') || '[]');
             
             if (products.length === 0) {
-                list.innerHTML = `<p style="grid-column: 1/3; text-align:center; color:gray; margin-top:20px;">Маҳсулот нест. Аз панели админ илова кунед.</p>`;
+                list.innerHTML = `<p style="grid-column: 1/3; text-align:center; color:gray; margin-top:20px;">Маҳсулот нест.</p>`;
             }
 
             products.forEach(p => {
