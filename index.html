@@ -1,31 +1,122 @@
 <!DOCTYPE html>
-<html lang="tj">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini App</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mini Shop</title>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: white; text-align: center; padding: 20px; }
-        .card { background: #1e293b; padding: 15px; border-radius: 15px; margin-top: 20px; }
-        .btn { background: #22c55e; color: black; padding: 12px 20px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; width: 100%; }
+        /* Аз файли style.css */
+        :root {
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(1000deg, #092397, #3b4d9ef0);
+            color: white;
+            --accent: #22c55e;
+        }
+        body { margin: 0; font-family: Arial; background: #0f172a; color: white; }
+        header { padding: 14px; text-align: center; backdrop-filter: blur(10px); }
+        header h1 { margin: 0; font-size: 20px; }
+        .langs button {
+            margin: 4px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 13px;
+            background: #1e293b;
+            color: #fff;
+            cursor: pointer;
+        }
+        .products {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            padding: 14px;
+        }
+        .card {
+            background: #020617;
+            border-radius: 18px;
+            padding: 10px;
+            box-shadow: 0 10px 30px #0005;
+            transition: .3s;
+        }
+        .card:hover { transform: translateY(-3px); }
+        .card img { width: 100%; border-radius: 14px; }
+        .card h4 { margin: 8px 0 4px; font-size: 14px; }
+        .card button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 14px;
+            background: var(--accent);
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <h1>Хуш омадед ба Mini App!</h1>
-    <div id="products">
-        <div class="card">
-            <h3>Маҳсулоти намунавӣ</h3>
-            <button class="btn" onclick="buy('Sample')">Харидан</button>
+    <header>
+        <h1 id="title">Маҳсулотҳо</h1>
+        <div class="langs">
+            <button onclick="setLang('ru')">RU</button>
+            <button onclick="setLang('en')">EN</button>
+            <button onclick="setLang('tj')">TJ</button>
         </div>
-    </div>
+    </header>
+
+    <div id="banner"></div>
+    <div class="products" id="products"></div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        function buy(name) {
-            alert("Шумо мехоҳед харед: " + name);
+        // Аз файли config.js
+        const ADMIN_IDS = [8406121228, 1513562762, 8416877124, 7193605598];
+        const ADMIN_USERNAME = "admin_username";
+
+        // Аз файли i18n.js
+        const TEXT = {
+            ru: { title: "Наши продукты", buy: "Купить" },
+            en: { title: "Our products", buy: "Buy" },
+            tj: { title: "Маҳсулотҳо", buy: "Харидан" }
+        };
+        let lang = localStorage.getItem('lang') || 'ru';
+
+        function setLang(l) { 
+            lang = l; 
+            localStorage.setItem('lang', l); 
+            render(); 
         }
+
+        // Аз файли client.js
+        const productsDiv = document.getElementById('products');
+
+        function render() {
+            document.getElementById('title').innerText = TEXT[lang].title;
+            productsDiv.innerHTML = '';
+            
+            // Маҳсулотҳои намунавӣ ё аз localStorage
+            const products = JSON.parse(localStorage.getItem('products')) || [
+                { name: "Product 1", img: "https://via.placeholder.com/150", desc: "Description" }
+            ];
+
+            products.forEach(p => {
+                productsDiv.innerHTML += `
+                    <div class="card">
+                        <img src="${p.img}" />
+                        <h4>${p.name}</h4>
+                        <button onclick="buy('${p.name}')">${TEXT[lang].buy}</button>
+                    </div>`;
+            });
+        }
+
+        function buy(name) {
+            Telegram.WebApp.openTelegramLink(
+                `https://t.me/${ADMIN_USERNAME}?text=Хочу купить ${name}`
+            );
+        }
+
+        // Омодасозии Telegram WebApp
+        Telegram.WebApp.ready();
+        render();
     </script>
 </body>
 </html>
