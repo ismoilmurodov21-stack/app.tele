@@ -5,15 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Shop MURODOV FF – Telegram Mini App</title>
 
-
 <!-- Telegram WebApp API -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-
 <style>
-:root{
---bg:#0f172a;--card:#1e293b;--accent:#22c55e;--text:#fff;--muted:#94a3b8;--danger:#ef4444
-}
+:root{--bg:#0f172a;--card:#1e293b;--accent:#22c55e;--text:#fff;--muted:#94a3b8;--danger:#ef4444}
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
 header{padding:14px;text-align:center;background:#020617;font-weight:bold}
@@ -22,74 +18,100 @@ header{padding:14px;text-align:center;background:#020617;font-weight:bold}
 .card img{width:100%;height:110px;object-fit:cover}
 .info{padding:8px}
 .price{color:var(--accent);font-weight:bold}
-.admin-btn{position:fixed;bottom:16px;right:16px;background:var(--accent);color:#000;padding:14px 16px;border-radius:50%;font-size:20px;font-weight:bold}
+.admin-btn{position:fixed;bottom:16px;right:16px;background:var(--accent);color:#000;padding:14px 16px;border-radius:50%;font-size:20px;font-weight:bold;display:none}
 .del{position:absolute;top:6px;right:6px;background:var(--danger);color:#fff;border-radius:50%;padding:4px 7px;font-size:12px}
 .stats{padding:10px;font-size:13px;color:var(--muted);text-align:center}
-input{display:block;margin:8px 0;width:100%}
 </style>
 </head>
 <body>
 
-
 <header>Shop MURODOV FF</header>
 <div class="stats" id="stats"></div>
 <div class="grid" id="products"></div>
-<div class="admin-btn" id="adminBtn" onclick="openAdmin()">+</div>
-
+<div class="admin-btn" id="adminBtn">+</div>
 
 <script>
 const tg = window.Telegram.WebApp;
 tg.expand();
 
+// ===== CONFIG =====
+const ADMIN_ID = 8406121228; // Telegram ID админ
+const ADMIN_USERNAME = 'ff_murodov'; // бе @
 
-// ====== CONFIG ======
-const ADMIN_ID = 8406121228; // <-- ID-и худро гузор
-const ADMIN_USERNAME = '@ff_murodov'; // <-- username админ
-
-
-// ====== STATE ======
 let products = JSON.parse(localStorage.getItem('products')) || [];
-let stats = JSON.parse(localStorage.getItem('stats')) || {views:0,buy:0};
+let stats = JSON.parse(localStorage.getItem('stats')) || {buy:0};
 
+// ⚠️ ADMIN CHECK – ONLY SAFE WAY
+let isAdmin = false;
 
-const isAdmin = tg.initDataUnsafe?.user?.id === ADMIN_ID;
-document.getElementById('adminBtn').style.display = isAdmin ? 'block' : 'none';
-
-
-// ====== RENDER ======
-function render(){
-const box = document.getElementById('products');
-box.innerHTML='';
-products.forEach(p=>{
-box.innerHTML += `
-<div class="card">
-${isAdmin?`<div class="del" onclick="del(${p.id})">×</div>`:''}
-<img src="${p.img}">
-<div class="info">
-<div class="price">${p.price}</div>
-</div>
-</div>`;
-});
-document.getElementById('stats').innerText = `Маҳсулот: ${products.length} | Харид: ${stats.buy}`;
-localStorage.setItem('products', JSON.stringify(products));
-localStorage.setItem('stats', JSON.stringify(stats));
+function initAdmin(){
+  if(tg.initDataUnsafe && tg.initDataUnsafe.user){
+    if(String(tg.initDataUnsafe.user.id) === String(ADMIN_ID)){
+      isAdmin = true;
+      document.getElementById('adminBtn').style.display = 'block';
+    }
+  }
 }
 
+// wait Telegram init
+setTimeout(initAdmin, 500);
 
-// ====== ACTIONS ======
-function openAdmin(){
-if(!isAdmin) return;
-const price = prompt('Нарх');
-if(!price) return;
-const file = document.createElement('input');
-file.type='file';
-file.accept='image/*';
-file.onchange = e=>{
-const reader = new FileReader();
-reader.onload = ()=>{
-products.push({id:Date.now(),img:reader.result,price});
+function render(){
+  const box = document.getElementById('products');
+  box.innerHTML = '';
+  products.forEach(p=>{
+    box.innerHTML += `
+      <div class="card" onclick="buy()">
+        ${isAdmin?`<div class='del' onclick='del(${p.id});event.stopPropagation()'>×</div>`:''}
+        <img src="${p.img}">
+        <div class="info"><div class="price">${p.price}</div></div>
+      </div>`;
+  });
+  document.getElementById('stats').innerText = `Маҳсулот: ${products.length} | Харид: ${stats.buy}`;
+  localStorage.setItem('products', JSON.stringify(products));
+  localStorage.setItem('stats', JSON.stringify(stats));
+}
+
+function buy(){
+  stats.buy++;
+  tg.openTelegramLink('https://t.me/'+ADMIN_USERNAME);
+  render();
+}
+
+// ✅ ADMIN ADD PRODUCT – FIXED
+const adminBtn = document.getElementById('adminBtn');
+adminBtn.addEventListener('click', ()=>{
+  if(!isAdmin){
+    tg.showAlert('Шумо админ нестед');
+    return;
+  }
+  const price = prompt('Нархро ворид кунед');
+  if(!price) return;
+
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = ()=>{
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      products.push({id:Date.now(), img: reader.result, price});
+      render();
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+});
+
+function del(id){
+  if(!isAdmin) return;
+  products = products.filter(p=>p.id !== id);
+  render();
+}
+
 render();
-};
-reader.readAsDataURL(e.target.files[0]);
-};
+</script>
+
+</body>
 </html>
