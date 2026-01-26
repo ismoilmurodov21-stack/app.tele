@@ -1,212 +1,95 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>Shop FF – IT Professional</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Shop MURODOV FF – Telegram Mini App</title>
+
+
+<!-- Telegram WebApp API -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 
 <style>
 :root{
- --bg:#0f172a;--card:#1e293b;--accent:#22c55e;--text:#fff;--gray:#94a3b8
+--bg:#0f172a;--card:#1e293b;--accent:#22c55e;--text:#fff;--muted:#94a3b8;--danger:#ef4444
 }
-body{margin:0;background:var(--bg);color:var(--text);font-family:sans-serif}
-header{text-align:center;padding:15px;border-bottom:1px solid var(--card)}
-
-.products{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:12px}
-.card{background:var(--card);border-radius:16px;overflow:hidden;position:relative}
-.card img{width:100%;aspect-ratio:1/1;object-fit:cover;cursor:pointer}
-.card-info{padding:10px}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+header{padding:14px;text-align:center;background:#020617;font-weight:bold}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:12px}
+.card{background:var(--card);border-radius:14px;overflow:hidden;cursor:pointer;position:relative}
+.card img{width:100%;height:110px;object-fit:cover}
+.info{padding:8px}
 .price{color:var(--accent);font-weight:bold}
-
-.buy{background:var(--accent);border:none;width:100%;padding:10px;border-radius:10px;font-weight:bold;cursor:pointer}
-.buy:hover{opacity:.9}
-
-.delete{background:#ef4444;color:white;border:none;width:100%;padding:6px;border-radius:8px;margin-top:5px;cursor:pointer}
-
-.badge{position:absolute;top:6px;right:6px;background:#0008;padding:3px 6px;border-radius:6px;font-size:10px}
-
-#admin-btn{
- position:fixed;bottom:20px;right:20px;
- width:50px;height:50px;border-radius:50%;
- border:none;background:#3b82f6;color:white;font-size:20px
-}
-
-#admin{display:none;background:var(--card);margin:10px;padding:15px;border-radius:15px}
-input,textarea{
- width:100%;padding:10px;margin-bottom:8px;
- border-radius:8px;border:1px solid var(--gray);
- background:var(--bg);color:white
-}
-
-label{
- background:#3b82f6;display:block;
- padding:10px;border-radius:10px;
- text-align:center;margin-bottom:8px;cursor:pointer
-}
-
-#preview img{width:50px;height:50px;border-radius:6px;object-fit:cover;margin-right:5px}
-
-#gallery{
- display:none;position:fixed;inset:0;
- background:black;z-index:1000;
- align-items:center;justify-content:center;flex-direction:column
-}
-#gallery img{max-width:100%;max-height:80vh}
-
-.nav{position:absolute;width:100%;display:flex;justify-content:space-between}
-.nav button{background:#fff3;border:none;font-size:30px;padding:10px;color:white}
-
-.close{
- position:absolute;top:20px;right:20px;
- font-size:30px;background:none;border:none;color:white;cursor:pointer
-}
-
-.banner{margin:10px;border-radius:15px;overflow:hidden;display:none}
-.banner img{width:100%;height:140px;object-fit:cover}
-.banner p{margin:0;padding:8px;background:#0009}
+.admin-btn{position:fixed;bottom:16px;right:16px;background:var(--accent);color:#000;padding:14px 16px;border-radius:50%;font-size:20px;font-weight:bold}
+.del{position:absolute;top:6px;right:6px;background:var(--danger);color:#fff;border-radius:50%;padding:4px 7px;font-size:12px}
+.stats{padding:10px;font-size:13px;color:var(--muted);text-align:center}
+input{display:block;margin:8px 0;width:100%}
 </style>
 </head>
-
 <body>
-<header><h2>IT Professional Shop</h2></header>
 
-<div class="banner" id="banner"></div>
 
-<div id="admin">
-<h3>➕ Product</h3>
-<input id="name" placeholder="Номи продукт">
-<input id="price" type="number" placeholder="Нарх">
-<label>
-📸 Интихоби фото (1–20)
-<input type="file" hidden multiple accept="image/*" id="photos">
-</label>
-<div id="preview"></div>
-<button class="buy" onclick="saveProduct()">Save</button>
+<header>Shop MURODOV FF</header>
+<div class="stats" id="stats"></div>
+<div class="grid" id="products"></div>
+<div class="admin-btn" id="adminBtn" onclick="openAdmin()">+</div>
 
-<hr>
-<h3>📢 Реклама</h3>
-<label>
-Upload Banner
-<input type="file" hidden accept="image/*" id="adfile">
-</label>
-<input id="adtext" placeholder="Матни реклама">
-<button class="buy" onclick="saveAd()">Show Ad</button>
-</div>
 
-<div class="products" id="list"></div>
-
-<div id="gallery">
-<button class="close" onclick="closeGallery()">✕</button>
-<div class="nav">
-<button onclick="nav(-1)">❮</button>
-<button onclick="nav(1)">❯</button>
-</div>
-<img id="gimg">
-</div>
-
-<button id="admin-btn" onclick="toggle()">⚙️</button>
-
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
-const tg = Telegram.WebApp;
-tg.ready(); tg.expand();
+const tg = window.Telegram.WebApp;
+tg.expand();
 
-const ADMIN_ID = 8406121228;
-const ADMIN_USERNAME = "ismoilmurodov21";
 
-let imgs=[], idx=0, buffer=[];
+// ====== CONFIG ======
+const ADMIN_ID = 8406121228; // <-- ID-и худро гузор
+const ADMIN_USERNAME = 'YOUR_USERNAME'; // <-- username админ
 
-if(tg.initDataUnsafe?.user?.id !== ADMIN_ID){
- document.getElementById("admin-btn").style.display="none";
+
+// ====== STATE ======
+let products = JSON.parse(localStorage.getItem('products')) || [];
+let stats = JSON.parse(localStorage.getItem('stats')) || {views:0,buy:0};
+
+
+const isAdmin = tg.initDataUnsafe?.user?.id === ADMIN_ID;
+document.getElementById('adminBtn').style.display = isAdmin ? 'block' : 'none';
+
+
+// ====== RENDER ======
+function render(){
+const box = document.getElementById('products');
+box.innerHTML='';
+products.forEach(p=>{
+box.innerHTML += `
+<div class="card">
+${isAdmin?`<div class="del" onclick="del(${p.id})">×</div>`:''}
+<img src="${p.img}">
+<div class="info">
+<div class="price">${p.price}</div>
+</div>
+</div>`;
+});
+document.getElementById('stats').innerText = `Маҳсулот: ${products.length} | Харид: ${stats.buy}`;
+localStorage.setItem('products', JSON.stringify(products));
+localStorage.setItem('stats', JSON.stringify(stats));
 }
 
-function toggle(){
- admin.style.display = admin.style.display === "block" ? "none" : "block";
-}
 
-photos.onchange = e => {
- buffer=[]; preview.innerHTML="";
- [...e.target.files].slice(0,20).forEach(f=>{
-  const r=new FileReader();
-  r.onload=()=>{
-   buffer.push(r.result);
-   preview.innerHTML += `<img src="${r.result}">`;
-  };
-  r.readAsDataURL(f);
- });
+// ====== ACTIONS ======
+function openAdmin(){
+if(!isAdmin) return;
+const price = prompt('Нарх');
+if(!price) return;
+const file = document.createElement('input');
+file.type='file';
+file.accept='image/*';
+file.onchange = e=>{
+const reader = new FileReader();
+reader.onload = ()=>{
+products.push({id:Date.now(),img:reader.result,price});
+render();
 };
-
-function saveProduct(){
- if(!name.value || !price.value || buffer.length===0){
-  alert("Маълумот нопурра"); return;
- }
- const p = JSON.parse(localStorage.products||"[]");
- p.push({name:name.value,price:price.value,photos:buffer});
- localStorage.products = JSON.stringify(p);
- location.reload();
-}
-
-function delItem(i){
- const p = JSON.parse(localStorage.products);
- p.splice(i,1);
- localStorage.products = JSON.stringify(p);
- location.reload();
-}
-
-function saveAd(){
- const f = adfile.files[0];
- if(!f) return;
- const r = new FileReader();
- r.onload = ()=>{
-  localStorage.ad = JSON.stringify({img:r.result,text:adtext.value});
-  location.reload();
- };
- r.readAsDataURL(f);
-}
-
-function buy(name){
- tg.openTelegramLink(
-  `https://t.me/${ADMIN_USERNAME}?text=${encodeURIComponent("Салом! Ман мехоҳам харам: "+name)}`
- );
-}
-
-function openGallery(arr,start){
- imgs = arr; idx = start;
- gallery.style.display="flex";
- gimg.src = imgs[idx];
-}
-function nav(d){
- idx = (idx+d+imgs.length)%imgs.length;
- gimg.src = imgs[idx];
-}
-function closeGallery(){gallery.style.display="none"}
-
-(function render(){
- const ad = JSON.parse(localStorage.ad||"null");
- if(ad){
-  banner.style.display="block";
-  banner.innerHTML = `<img src="${ad.img}"><p>${ad.text||""}</p>`;
- }
-
- const p = JSON.parse(localStorage.products||"[]");
- list.innerHTML = p.length ? "" :
- "<p style='grid-column:1/3;text-align:center;color:gray'>Нет товаров</p>";
-
- p.forEach((x,i)=>{
-  list.innerHTML += `
-  <div class="card">
-   ${x.photos.length>1?`<div class="badge">📸${x.photos.length}</div>`:""}
-   <img src="${x.photos[0]}" onclick='openGallery(${JSON.stringify(x.photos)},0)'>
-   <div class="card-info">
-    <b>${x.name}</b>
-    <div class="price">${x.price}</div>
-    <button class="buy" onclick="buy(${JSON.stringify(x.name)})">Купить</button>
-    ${tg.initDataUnsafe?.user?.id===ADMIN_ID
-      ?`<button class="delete" onclick="delItem(${i})">Удалить</button>`:""}
-   </div>
-  </div>`;
- });
-})();
-</script>
-</body>
+reader.readAsDataURL(e.target.files[0]);
+};
 </html>
