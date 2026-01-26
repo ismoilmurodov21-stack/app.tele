@@ -1,116 +1,136 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Shop MURODOV FF – Telegram Mini App</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MURODOV FF SHOP</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --main-color: #ffcc00; --bg-color: #f0f2f5; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); margin: 0; padding: 10px; color: #333; }
+        
+        header { background: var(--main-color); padding: 15px; text-align: center; font-weight: bold; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
-<!-- Telegram WebApp API -->
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+        /* Админ-панель */
+        #adminPanel { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 2px solid var(--main-color); display: none; }
+        #adminPanel h3 { margin-top: 0; font-size: 16px; }
+        input, textarea { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        .add-btn { background: #27ae60; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; font-weight: bold; }
 
-<style>
-:root{--bg:#0f172a;--card:#1e293b;--accent:#22c55e;--text:#fff;--muted:#94a3b8;--danger:#ef4444}
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
-header{padding:14px;text-align:center;background:#020617;font-weight:bold}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:12px}
-.card{background:var(--card);border-radius:14px;overflow:hidden;cursor:pointer;position:relative}
-.card img{width:100%;height:110px;object-fit:cover}
-.info{padding:8px}
-.price{color:var(--accent);font-weight:bold}
-.admin-btn{position:fixed;bottom:16px;right:16px;background:var(--accent);color:#000;padding:14px 16px;border-radius:50%;font-size:20px;font-weight:bold;display:none}
-.del{position:absolute;top:6px;right:6px;background:var(--danger);color:#fff;border-radius:50%;padding:4px 7px;font-size:12px}
-.stats{padding:10px;font-size:13px;color:var(--muted);text-align:center}
-</style>
+        /* Сетка товаров: 3 в ряд */
+        .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; transition: 0.2s; }
+        .card:active { transform: scale(0.97); }
+        .card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #eee; }
+        
+        .card-info { padding: 6px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .price { color: #27ae60; font-weight: bold; font-size: 12px; margin-bottom: 2px; }
+        .name { font-size: 11px; color: #555; height: 32px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+        .buy-btn { background: #0088cc; color: white; border: none; padding: 5px; font-size: 10px; border-radius: 4px; margin-top: 5px; width: 100%; cursor: pointer; }
+
+        /* Модальное окно (Bio) */
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 100%; max-width: 400px; text-align: center; }
+        .close-modal { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin-top: 15px; }
+    </style>
 </head>
 <body>
 
-<header>Shop MURODOV FF</header>
-<div class="stats" id="stats"></div>
-<div class="grid" id="products"></div>
-<div class="admin-btn" id="adminBtn">+</div>
+<header>MURODOV FF SHOP</header>
+
+<div id="adminPanel">
+    <h3>Админ: Добавить товар</h3>
+    <input type="text" id="inpName" placeholder="Название (например: Ak-47 Dragon)">
+    <input type="text" id="inpPrice" placeholder="Цена (например: 500 TJS)">
+    <textarea id="inpBio" placeholder="Описание аккаунта (Bio)"></textarea>
+    <input type="text" id="inpPhoto" placeholder="Ссылка на фото товара">
+    <button class="add-btn" onclick="addNewProduct()">Добавить в магазин</button>
+</div>
+
+<div class="product-grid" id="shopGrid"></div>
+
+<div id="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle"></h3>
+        <p id="modalBio"></p>
+        <button class="close-modal" onclick="closeModal()">Закрыть</button>
+    </div>
+</div>
 
 <script>
-const tg = window.Telegram.WebApp;
-tg.expand();
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-// ===== CONFIG =====
-const ADMIN_ID = 8406121228; // Telegram ID админ
-const ADMIN_USERNAME = 'ff_murodov'; // бе @
+    // ВАЖНО: Укажите здесь свой Telegram ID, чтобы видеть админку
+    const MY_ADMIN_ID = 123456789; // Замените на ваш ID
 
-let products = JSON.parse(localStorage.getItem('products')) || [];
-let stats = JSON.parse(localStorage.getItem('stats')) || {buy:0};
+    // База данных в браузере
+    let products = JSON.parse(localStorage.getItem('ff_products')) || [];
 
-// ⚠️ ADMIN CHECK – ONLY SAFE WAY
-let isAdmin = false;
-
-function initAdmin(){
-  if(tg.initDataUnsafe && tg.initDataUnsafe.user){
-    if(String(tg.initDataUnsafe.user.id) === String(ADMIN_ID)){
-      isAdmin = true;
-      document.getElementById('adminBtn').style.display = 'block';
+    // Проверка прав админа
+    if (tg.initDataUnsafe.user && tg.initDataUnsafe.user.id === MY_ADMIN_ID) {
+        document.getElementById('adminPanel').style.display = 'block';
     }
-  }
-}
 
-// wait Telegram init
-setTimeout(initAdmin, 500);
+    function render() {
+        const grid = document.getElementById('shopGrid');
+        grid.innerHTML = '';
+        
+        products.forEach((p, index) => {
+            grid.innerHTML += `
+                <div class="card">
+                    <img src="${p.photo || 'https://via.placeholder.com/150'}" onclick="showBio(${index})">
+                    <div class="card-info">
+                        <div>
+                            <div class="price">${p.price}</div>
+                            <div class="name">${p.name}</div>
+                        </div>
+                        <button class="buy-btn" onclick="contactAdmin()">Связаться</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
 
-function render(){
-  const box = document.getElementById('products');
-  box.innerHTML = '';
-  products.forEach(p=>{
-    box.innerHTML += `
-      <div class="card" onclick="buy()">
-        ${isAdmin?`<div class='del' onclick='del(${p.id});event.stopPropagation()'>×</div>`:''}
-        <img src="${p.img}">
-        <div class="info"><div class="price">${p.price}</div></div>
-      </div>`;
-  });
-  document.getElementById('stats').innerText = `Маҳсулот: ${products.length} | Харид: ${stats.buy}`;
-  localStorage.setItem('products', JSON.stringify(products));
-  localStorage.setItem('stats', JSON.stringify(stats));
-}
+    function addNewProduct() {
+        const name = document.getElementById('inpName').value;
+        const price = document.getElementById('inpPrice').value;
+        const bio = document.getElementById('inpBio').value;
+        const photo = document.getElementById('inpPhoto').value;
 
-function buy(){
-  stats.buy++;
-  tg.openTelegramLink('https://t.me/'+ADMIN_USERNAME);
-  render();
-}
+        if (!name || !price) return alert("Введите название и цену!");
 
-// ✅ ADMIN ADD PRODUCT – FIXED
-const adminBtn = document.getElementById('adminBtn');
-adminBtn.addEventListener('click', ()=>{
-  if(!isAdmin){
-    tg.showAlert('Шумо админ нестед');
-    return;
-  }
-  const price = prompt('Нархро ворид кунед');
-  if(!price) return;
+        products.push({ name, price, bio, photo });
+        localStorage.setItem('ff_products', JSON.stringify(products));
+        
+        // Очистка полей
+        document.getElementById('inpName').value = '';
+        document.getElementById('inpPrice').value = '';
+        document.getElementById('inpBio').value = '';
+        document.getElementById('inpPhoto').value = '';
 
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
-  input.onchange = ()=>{
-    const file = input.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = ()=>{
-      products.push({id:Date.now(), img: reader.result, price});
-      render();
-    };
-    reader.readAsDataURL(file);
-  };
-  input.click();
-});
+        render();
+    }
 
-function del(id){
-  if(!isAdmin) return;
-  products = products.filter(p=>p.id !== id);
-  render();
-}
+    function showBio(index) {
+        const p = products[index];
+        document.getElementById('modalTitle').innerText = p.name;
+        document.getElementById('modalBio').innerText = p.bio || "Нет описания";
+        document.getElementById('modal').style.display = 'flex';
+    }
 
-render();
+    function closeModal() {
+        document.getElementById('modal').style.display = 'none';
+    }
+
+    function contactAdmin() {
+        // Укажите ваш ник в Telegram вместо 'murodov_admin'
+        tg.openTelegramLink("https://t.me/your_username"); 
+    }
+
+    // Первый запуск
+    render();
 </script>
 
 </body>
