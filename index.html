@@ -1,137 +1,289 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="tg">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MURODOV FF SHOP</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --main-color: #ffcc00; --bg-color: #f0f2f5; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); margin: 0; padding: 10px; color: #333; }
-        
-        header { background: var(--main-color); padding: 15px; text-align: center; font-weight: bold; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        :root {
+            --main-yellow: #ffcc00;
+            --bg-color: #f0f2f5;
+            --text-dark: #333;
+            --price-green: #27ae60;
+        }
 
-        /* Админ-панель */
-        #adminPanel { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 2px solid var(--main-color); display: none; }
-        #adminPanel h3 { margin-top: 0; font-size: 16px; }
-        input, textarea { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        .add-btn { background: #27ae60; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; font-weight: bold; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 10px;
+            color: var(--text-dark);
+            -webkit-user-select: none;
+        }
 
-        /* Сетка товаров: 3 в ряд */
-        .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; transition: 0.2s; }
-        .card:active { transform: scale(0.97); }
-        .card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #eee; }
-        
-        .card-info { padding: 6px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .price { color: #27ae60; font-weight: bold; font-size: 12px; margin-bottom: 2px; }
-        .name { font-size: 11px; color: #555; height: 32px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        header {
+            background-color: var(--main-yellow);
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
 
-        .buy-btn { background: #0088cc; color: white; border: none; padding: 5px; font-size: 10px; border-radius: 4px; margin-top: 5px; width: 100%; cursor: pointer; }
+        /* Панели Админ */
+        #adminPanel {
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 2px dashed var(--main-yellow);
+            display: none; /* Танҳо барои админ намоён мешавад */
+        }
 
-        /* Модальное окно (Bio) */
-        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 100%; max-width: 400px; text-align: center; }
-        .close-modal { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin-top: 15px; }
+        #adminPanel h3 { margin-top: 0; font-size: 16px; color: #444; }
+
+        input, textarea {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        .btn-add {
+            background-color: var(--price-green);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Сеткаи Somon.tj (3-тоӣ дар як қатор) */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .card img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            background: #eee;
+        }
+
+        .card-content {
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex-grow: 1;
+        }
+
+        .price {
+            color: var(--price-green);
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+
+        .name {
+            font-size: 10px;
+            line-height: 1.2;
+            color: #555;
+            height: 24px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .btn-buy {
+            background-color: #0088cc;
+            color: white;
+            border: none;
+            padding: 6px 0;
+            border-radius: 4px;
+            font-size: 10px;
+            margin-top: 6px;
+            cursor: pointer;
+        }
+
+        .btn-delete {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            font-size: 9px;
+            padding: 2px;
+            border-radius: 3px;
+            margin-top: 4px;
+        }
+
+        /* Модал барои BIO */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 320px;
+            text-align: center;
+        }
+
+        .close-btn {
+            margin-top: 15px;
+            background: #666;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
 
-<header>MURODOV FF SHOP</header>
+    <header>MURODOV FF SHOP</header>
 
-<div id="adminPanel">
-    <h3>Админ: Добавить товар</h3>
-    <input type="text" id="inpName" placeholder="Название (например: Ak-47 Dragon)">
-    <input type="text" id="inpPrice" placeholder="Цена (например: 500 TJS)">
-    <textarea id="inpBio" placeholder="Описание аккаунта (Bio)"></textarea>
-    <input type="text" id="inpPhoto" placeholder="Ссылка на фото товара">
-    <button class="add-btn" onclick="addNewProduct()">Добавить в магазин</button>
-</div>
-
-<div class="product-grid" id="shopGrid"></div>
-
-<div id="modal">
-    <div class="modal-content">
-        <h3 id="modalTitle"></h3>
-        <p id="modalBio"></p>
-        <button class="close-modal" onclick="closeModal()">Закрыть</button>
+    <div id="adminPanel">
+        <h3>Панели Админ</h3>
+        <input type="text" id="itemName" placeholder="Номи аккаунт">
+        <input type="text" id="itemPrice" placeholder="Нарх (м: 500 TJS)">
+        <textarea id="itemBio" placeholder="Маълумоти иловагӣ (BIO)"></textarea>
+        
+        <label style="font-size: 12px; color: #777; margin-bottom: 5px; display: block;">Сурат аз галерея:</label>
+        <input type="file" id="itemFile" accept="image/*">
+        
+        <button class="btn-add" onclick="addProduct()">Илова кардан</button>
     </div>
-</div>
 
-<script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
+    <div class="product-grid" id="mainGrid"></div>
 
-    // ВАЖНО: Укажите здесь свой Telegram ID, чтобы видеть админку
-    const MY_ADMIN_ID = 8406121228; // Замените на ваш ID
+    <div id="bioModal" class="modal">
+        <div class="modal-box">
+            <h3 id="modalTitle"></h3>
+            <p id="modalText" style="font-size: 14px; color: #666;"></p>
+            <button class="close-btn" onclick="closeModal()">Бастан</button>
+        </div>
+    </div>
 
-    // База данных в браузере
-    let products = JSON.parse(localStorage.getItem('ff_products')) || [];
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-    // Проверка прав админа
-    if (tg.initDataUnsafe.user && tg.initDataUnsafe.user.id === MY_ADMIN_ID) {
-        document.getElementById('adminPanel').style.display = 'block';
-    }
+        // ДИҚҚАТ: Иди худро дар инҷо нависед!
+        const ADMIN_TELEGRAM_ID = 123456789; 
 
-    function render() {
-        const grid = document.getElementById('shopGrid');
-        grid.innerHTML = '';
-        
-        products.forEach((p, index) => {
-            grid.innerHTML += `
-                <div class="card">
-                    <img src="${p.photo || 'https://via.placeholder.com/150'}" onclick="showBio(${index})">
-                    <div class="card-info">
+        let store = JSON.parse(localStorage.getItem('murodov_ff_db')) || [];
+
+        // Санҷиши админ
+        if (tg.initDataUnsafe.user && tg.initDataUnsafe.user.id === ADMIN_TELEGRAM_ID) {
+            document.getElementById('adminPanel').style.display = 'block';
+        }
+
+        function render() {
+            const grid = document.getElementById('mainGrid');
+            grid.innerHTML = '';
+            
+            store.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <img src="${item.img}" onclick="showBio(${index})">
+                    <div class="card-content">
                         <div>
-                            <div class="price">${p.price}</div>
-                            <div class="name">${p.name}</div>
+                            <div class="price">${item.price}</div>
+                            <div class="name">${item.name}</div>
                         </div>
-                        <button class="buy-btn" onclick="contactAdmin()">Связаться</button>
+                        <button class="btn-buy" onclick="contactAdmin()">Связь</button>
+                        ${tg.initDataUnsafe.user?.id === ADMIN_TELEGRAM_ID ? 
+                          `<button class="btn-delete" onclick="deleteItem(${index})">Удалить</button>` : ''}
                     </div>
-                </div>
-            `;
-        });
-    }
+                `;
+                grid.appendChild(card);
+            });
+        }
 
-    function addNewProduct() {
-        const name = document.getElementById('inpName').value;
-        const price = document.getElementById('inpPrice').value;
-        const bio = document.getElementById('inpBio').value;
-        const photo = document.getElementById('inpPhoto').value;
+        function addProduct() {
+            const name = document.getElementById('itemName').value;
+            const price = document.getElementById('itemPrice').value;
+            const bio = document.getElementById('itemBio').value;
+            const fileInput = document.getElementById('itemFile');
 
-        if (!name || !price) return alert("Введите название и цену!");
+            if (!name || !price || !fileInput.files[0]) {
+                alert("Пурра кунед!");
+                return;
+            }
 
-        products.push({ name, price, bio, photo });
-        localStorage.setItem('ff_products', JSON.stringify(products));
-        
-        // Очистка полей
-        document.getElementById('inpName').value = '';
-        document.getElementById('inpPrice').value = '';
-        document.getElementById('inpBio').value = '';
-        document.getElementById('inpPhoto').value = '';
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgBase64 = e.target.result;
+                store.push({ name, price, bio, img: imgBase64 });
+                localStorage.setItem('murodov_ff_db', JSON.stringify(store));
+                
+                // Тоза кардани форма
+                document.getElementById('itemName').value = '';
+                document.getElementById('itemPrice').value = '';
+                document.getElementById('itemBio').value = '';
+                fileInput.value = '';
+                
+                render();
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+
+        function deleteItem(index) {
+            if (confirm("Ин аккаунт нест карда шавад?")) {
+                store.splice(index, 1);
+                localStorage.setItem('murodov_ff_db', JSON.stringify(store));
+                render();
+            }
+        }
+
+        function showBio(index) {
+            const item = store[index];
+            document.getElementById('modalTitle').innerText = item.name;
+            document.getElementById('modalText').innerText = item.bio || "Маълумот нест.";
+            document.getElementById('bioModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('bioModal').style.display = 'none';
+        }
+
+        function contactAdmin() {
+            // Ники худро ба ҷои 'your_username' нависед
+            tg.openTelegramLink("https://t.me/your_username");
+        }
 
         render();
-    }
-
-    function showBio(index) {
-        const p = products[index];
-        document.getElementById('modalTitle').innerText = p.name;
-        document.getElementById('modalBio').innerText = p.bio || "Нет описания";
-        document.getElementById('modal').style.display = 'flex';
-    }
-
-    function closeModal() {
-        document.getElementById('modal').style.display = 'none';
-    }
-
-    function contactAdmin() {
-        // Укажите ваш ник в Telegram вместо 'murodov_admin'
-        tg.openTelegramLink("https://t.me/your_username"); 
-    }
-
-    // Первый запуск
-    render();
-</script>
-
+    </script>
 </body>
 </html>
