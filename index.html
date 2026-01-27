@@ -9,25 +9,23 @@
         :root {
             --main-yellow: #ffcc00;
             --bg-color: #f0f2f5;
-            --text-dark: #333;
             --price-green: #27ae60;
+            --tg-theme-text-color: #000000;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             margin: 0;
             padding: 10px;
-            color: var(--text-dark);
-            -webkit-user-select: none;
+            color: var(--tg-theme-text-color);
         }
 
         header {
-            background-color: var(--main-yellow);
+            background: var(--main-yellow);
             padding: 15px;
             text-align: center;
             font-weight: bold;
-            font-size: 18px;
             border-radius: 12px;
             margin-bottom: 15px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -40,10 +38,8 @@
             border-radius: 12px;
             margin-bottom: 20px;
             border: 2px dashed var(--main-yellow);
-            display: none; /* Танҳо барои админ намоён мешавад */
+            display: none; /* Танҳо барои админ */
         }
-
-        #adminPanel h3 { margin-top: 0; font-size: 16px; color: #444; }
 
         input, textarea {
             width: 100%;
@@ -56,7 +52,7 @@
         }
 
         .btn-add {
-            background-color: var(--price-green);
+            background: var(--price-green);
             color: white;
             border: none;
             padding: 12px;
@@ -66,7 +62,7 @@
             cursor: pointer;
         }
 
-        /* Сеткаи Somon.tj (3-тоӣ дар як қатор) */
+        /* Сеткаи 3-тоӣ (Style Somon.tj) */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -80,92 +76,81 @@
             display: flex;
             flex-direction: column;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            position: relative;
         }
 
         .card img {
             width: 100%;
-            aspect-ratio: 1 / 1;
+            aspect-ratio: 1/1;
             object-fit: cover;
             background: #eee;
         }
 
         .card-content {
             padding: 6px;
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            flex-grow: 1;
         }
 
         .price {
             color: var(--price-green);
             font-weight: bold;
-            font-size: 12px;
-            margin-bottom: 2px;
+            font-size: 11px;
         }
 
         .name {
             font-size: 10px;
-            line-height: 1.2;
             color: #555;
             height: 24px;
             overflow: hidden;
+            margin: 2px 0;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
         }
 
         .btn-buy {
-            background-color: #0088cc;
+            background: #0088cc;
             color: white;
             border: none;
-            padding: 6px 0;
+            padding: 5px;
             border-radius: 4px;
             font-size: 10px;
-            margin-top: 6px;
+            width: 100%;
             cursor: pointer;
         }
 
-        .btn-delete {
-            background-color: #ff4d4d;
+        .btn-del {
+            background: #ff4d4d;
             color: white;
             border: none;
+            padding: 3px;
             font-size: 9px;
-            padding: 2px;
-            border-radius: 3px;
-            margin-top: 4px;
+            border-radius: 4px;
+            margin-top: 5px;
         }
 
-        /* Модал барои BIO */
+        /* Модал */
         .modal {
             display: none;
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
+            top: 0; left: 0; 
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
             z-index: 1000;
             justify-content: center;
             align-items: center;
-            padding: 20px;
         }
-
         .modal-box {
             background: #fff;
             padding: 20px;
             border-radius: 15px;
-            width: 100%;
-            max-width: 320px;
+            width: 80%;
             text-align: center;
         }
 
-        .close-btn {
-            margin-top: 15px;
-            background: #666;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-        }
+        #loading { text-align: center; padding: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -173,24 +158,25 @@
     <header>MURODOV FF SHOP</header>
 
     <div id="adminPanel">
-        <h3>Панели Админ</h3>
-        <input type="text" id="itemName" placeholder="Номи аккаунт">
+        <h3 style="margin-top:0">Панели Админ</h3>
+        <input type="text" id="itemName" placeholder="Номи аккаунт (м: AK-47 Dragon)">
         <input type="text" id="itemPrice" placeholder="Нарх (м: 500 TJS)">
-        <textarea id="itemBio" placeholder="Маълумоти иловагӣ (BIO)"></textarea>
+        <textarea id="itemBio" placeholder="Маълумот дар бораи аккаунт (Bio)"></textarea>
         
-        <label style="font-size: 12px; color: #777; margin-bottom: 5px; display: block;">Сурат аз галерея:</label>
+        <label style="font-size:12px; color:#666">Интихоби сурат аз галерея:</label>
         <input type="file" id="itemFile" accept="image/*">
         
-        <button class="btn-add" onclick="addProduct()">Илова кардан</button>
+        <button class="btn-add" id="addBtn" onclick="addProduct()">Илова кардан</button>
     </div>
 
+    <div id="loading">Боргирии молҳо...</div>
     <div class="product-grid" id="mainGrid"></div>
 
     <div id="bioModal" class="modal">
         <div class="modal-box">
-            <h3 id="modalTitle"></h3>
-            <p id="modalText" style="font-size: 14px; color: #666;"></p>
-            <button class="close-btn" onclick="closeModal()">Бастан</button>
+            <h3 id="mTitle"></h3>
+            <p id="mText" style="color:#666; font-size:14px"></p>
+            <button onclick="document.getElementById('bioModal').style.display='none'" style="padding:10px 20px; border-radius:8px; border:none; background:#666; color:#fff">Бастан</button>
         </div>
     </div>
 
@@ -198,92 +184,120 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // ДИҚҚАТ: Иди худро дар инҷо нависед!
-        const ADMIN_TELEGRAM_ID = 8406121228; 
+        // 1. ИДИ ХУДРО ИНҶО ГУЗОРЕД
+        const ADMIN_ID = 8406121228; 
 
-        let store = JSON.parse(localStorage.getItem('murodov_ff_db')) || [];
+        // 2. СУРОҒАИ FIREBASE-И ХУДРО ИНҶО ГУЗОРЕД
+        const DB_URL = "https://shop-murodov-ff-default-rtdb.firebaseio.com";
 
-        // Санҷиши админ
-        if (tg.initDataUnsafe.user && tg.initDataUnsafe.user.id === ADMIN_TELEGRAM_ID) {
+        // Санҷиши Админ
+        if (tg.initDataUnsafe.user && tg.initDataUnsafe.user.id === ADMIN_ID) {
             document.getElementById('adminPanel').style.display = 'block';
         }
 
-        function render() {
+        // Боргирии молҳо аз Firebase
+        async function loadItems() {
             const grid = document.getElementById('mainGrid');
-            grid.innerHTML = '';
+            const loader = document.getElementById('loading');
             
-            store.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <img src="${item.img}" onclick="showBio(${index})">
-                    <div class="card-content">
-                        <div>
-                            <div class="price">${item.price}</div>
-                            <div class="name">${item.name}</div>
-                        </div>
-                        <button class="btn-buy" onclick="contactAdmin()">Связь</button>
-                        ${tg.initDataUnsafe.user?.id === ADMIN_TELEGRAM_ID ? 
-                          `<button class="btn-delete" onclick="deleteItem(${index})">Удалить</button>` : ''}
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
+            try {
+                const res = await fetch(`${DB_URL}.json`);
+                const data = await res.json();
+                
+                grid.innerHTML = '';
+                loader.style.display = 'none';
+
+                if (data) {
+                    Object.keys(data).reverse().forEach(id => {
+                        const item = data[id];
+                        grid.innerHTML += `
+                            <div class="card">
+                                <img src="${item.img}" onclick="showBio('${item.name}', '${item.bio}')">
+                                <div class="card-content">
+                                    <div>
+                                        <span class="price">${item.price}</span>
+                                        <span class="name">${item.name}</span>
+                                    </div>
+                                    <button class="btn-buy" onclick="contact()">Связь</button>
+                                    ${tg.initDataUnsafe.user?.id === ADMIN_ID ? 
+                                    `<button class="btn-del" onclick="deleteItem('${id}')">Удалить</button>` : ''}
+                                </div>
+                            </div>`;
+                    });
+                } else {
+                    grid.innerHTML = "<p style='grid-column:1/4; text-align:center;'>Ҳоло мол нест.</p>";
+                }
+            } catch (e) {
+                loader.innerText = "Хатогӣ ҳангоми боргирӣ!";
+            }
         }
 
+        // Илова кардани мол (Админ)
         function addProduct() {
+            const btn = document.getElementById('addBtn');
             const name = document.getElementById('itemName').value;
             const price = document.getElementById('itemPrice').value;
             const bio = document.getElementById('itemBio').value;
             const fileInput = document.getElementById('itemFile');
+            const file = fileInput.files[0];
 
-            if (!name || !price || !fileInput.files[0]) {
-                alert("Пурра кунед!");
+            if (!name || !price || !file) {
+                alert("Лутфан ҳамаи сатрҳоро пур кунед ва суратро интихоб намоед!");
                 return;
             }
 
+            btn.disabled = true;
+            btn.innerText = "Дар ҳоли боргузорӣ...";
+
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 const imgBase64 = e.target.result;
-                store.push({ name, price, bio, img: imgBase64 });
-                localStorage.setItem('murodov_ff_db', JSON.stringify(store));
-                
-                // Тоза кардани форма
-                document.getElementById('itemName').value = '';
-                document.getElementById('itemPrice').value = '';
-                document.getElementById('itemBio').value = '';
-                fileInput.value = '';
-                
-                render();
+                const newItem = { name, price, bio, img: imgBase64 };
+
+                try {
+                    await fetch(`${DB_URL}.json`, {
+                        method: 'POST',
+                        body: JSON.stringify(newItem)
+                    });
+                    
+                    // Тоза кардани форма
+                    document.getElementById('itemName').value = '';
+                    document.getElementById('itemPrice').value = '';
+                    document.getElementById('itemBio').value = '';
+                    fileInput.value = '';
+                    
+                    alert("Мол бо муваффақият илова шуд!");
+                    loadItems();
+                } catch (err) {
+                    alert("Хатогӣ ҳангоми фиристодан!");
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = "Илова кардан";
+                }
             };
-            reader.readAsDataURL(fileInput.files[0]);
+            reader.readAsDataURL(file);
         }
 
-        function deleteItem(index) {
-            if (confirm("Ин аккаунт нест карда шавад?")) {
-                store.splice(index, 1);
-                localStorage.setItem('murodov_ff_db', JSON.stringify(store));
-                render();
+        // Нест кардани мол (Админ)
+        async function deleteItem(id) {
+            if (confirm("Оё мехоҳед ин аккаунт ва суратро нест кунед?")) {
+                await fetch(`${DB_URL}/${id}.json`, { method: 'DELETE' });
+                loadItems();
             }
         }
 
-        function showBio(index) {
-            const item = store[index];
-            document.getElementById('modalTitle').innerText = item.name;
-            document.getElementById('modalText').innerText = item.bio || "Маълумот нест.";
+        function showBio(t, b) {
+            document.getElementById('mTitle').innerText = t;
+            document.getElementById('mText').innerText = b || "Маълумоти иловагӣ нест.";
             document.getElementById('bioModal').style.display = 'flex';
         }
 
-        function closeModal() {
-            document.getElementById('bioModal').style.display = 'none';
-        }
-
-        function contactAdmin() {
-            // Ники худро ба ҷои 'your_username' нависед
+        function contact() {
             tg.openTelegramLink("https://t.me/ff_murodov");
         }
 
-        render();
+        // Оғози кор
+        loadItems();
     </script>
 </body>
 </html>
