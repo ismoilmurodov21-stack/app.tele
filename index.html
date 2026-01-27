@@ -6,252 +6,111 @@
     <title>MURODOV FF SHOP</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Тағйироти рангҳо барои намуди зебо */
         :root {
-            --main-yellow: #FFC107; /* Зарди асосӣ, каме ториктар */
-            --bg-color: #ECEFF1;    /* Ранги заминаи равшантар */
-            --card-bg: #FFFFFF;     /* Ранги заминаи корт */
-            --price-green: #4CAF50; /* Сабзи нарх, каме ториктар */
-            --text-color: #212121;  /* Ранги матни асосӣ */
-            --secondary-text: #616161; /* Ранги матни дуюмдараҷа */
-            --border-color: #E0E0E0; /* Ранги сарҳади умумӣ */
-            --admin-border: #FFD54F; /* Ранги сарҳади панели админ */
-            --button-blue: #2196F3; /* Ранги тугмаи "Связь" */
-            --button-red: #F44336;  /* Ранги тугмаи "Удалить" */
+            --main-yellow: #FFC107;
+            --bg-color: #ECEFF1;
+            --card-bg: #FFFFFF;
+            --price-green: #4CAF50;
+            --text-color: #212121;
+            --btn-blue: #2196F3;
+            --btn-red: #F44336;
         }
 
         body {
-            font-family: 'Roboto', -apple-system, system-ui, sans-serif;
+            font-family: 'Roboto', -apple-system, sans-serif;
             background-color: var(--bg-color);
-            margin: 0;
-            padding: 10px;
+            margin: 0; padding: 10px;
             color: var(--text-color);
-            line-height: 1.4;
         }
 
         header {
             background: var(--main-yellow);
-            color: var(--text-color); /* Матн дар header */
-            padding: 18px 15px;
-            text-align: center;
-            font-weight: 700; /* Bold */
-            font-size: 20px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            letter-spacing: 0.5px;
+            padding: 18px; text-align: center;
+            font-weight: 800; font-size: 20px;
+            border-radius: 12px; margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        /* Панели Админ - Дизайн мутобиқ ба скриншот */
+        /* ПАНЕЛИ АДМИН (Танҳо барои шумо) */
         #adminPanel {
             background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 2px dashed var(--admin-border);
-            display: none; /* Танҳо барои Ismoil */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            padding: 20px; border-radius: 12px;
+            margin-bottom: 20px; border: 2px dashed var(--main-yellow);
+            display: none; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        #adminPanel h3 {
-            margin-top: 0;
-            color: var(--text-color);
-            font-size: 18px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
+        #adminPanel h3 { margin-top: 0; font-size: 18px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
 
         input, textarea {
-            width: 100%;
-            margin-bottom: 10px;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 15px;
-            color: var(--text-color);
-            background-color: var(--bg-color);
-        }
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: var(--main-yellow);
-            box-shadow: 0 0 0 2px rgba(255,193,7,0.2);
+            width: 100%; margin-bottom: 12px;
+            padding: 12px; border: 1px solid #ddd;
+            border-radius: 8px; box-sizing: border-box;
+            font-size: 15px; background: #fafafa;
         }
 
         .btn-add {
             background: var(--price-green);
-            color: white;
-            border: none;
-            padding: 14px;
-            width: 100%;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s ease, transform 0.2s ease;
+            color: white; border: none; padding: 14px;
+            width: 100%; border-radius: 8px; font-weight: bold;
+            font-size: 16px; cursor: pointer; transition: 0.3s;
         }
-        .btn-add:hover {
-            background: #43A047; /* Каме ториктар при наведении */
-            transform: translateY(-1px);
-        }
-        .btn-add:disabled {
-            background: #A5D6A7;
-            cursor: not-allowed;
-        }
+        .btn-add:active { transform: scale(0.97); }
 
-        /* Сеткаи 3-қатора (Style Somon.tj) */
+        /* СЕТКАИ 3-ҚАТОРА (Style Somon.tj) */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px; /* Фосилаи бештар байни кортҳо */
+            gap: 10px;
         }
 
         .card {
-            background: var(--card-bg);
-            border-radius: 10px; /* Курнашакли бештар */
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-            transition: transform 0.2s ease;
-        }
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+            background: var(--card-bg); border-radius: 10px;
+            overflow: hidden; display: flex; flex-direction: column;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            transition: 0.2s;
         }
 
         .card img {
-            width: 100%;
-            aspect-ratio: 1/1; /* 1:1 барои сурат */
-            object-fit: cover;
-            background: #ECEFF1; /* Ранги равшани заминаи сурат */
-            border-bottom: 1px solid var(--border-color);
-            cursor: pointer;
+            width: 100%; aspect-ratio: 1/1;
+            object-fit: cover; background: #f5f5f5;
+            cursor: pointer; border-bottom: 1px solid #eee;
         }
 
         .card-content {
-            padding: 8px; /* Фосилаи бештар */
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
+            padding: 8px; flex-grow: 1;
+            display: flex; flex-direction: column;
             justify-content: space-between;
         }
 
-        .price {
-            color: var(--price-green);
-            font-weight: 700;
-            font-size: 13px;
-            margin-bottom: 4px;
-        }
+        .price { color: var(--price-green); font-weight: 800; font-size: 12px; }
+        .name { font-size: 11px; color: #616161; height: 28px; overflow: hidden; margin: 4px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
-        .name { 
-            font-size: 12px;
-            color: var(--secondary-text);
-            height: 28px; /* Барои 2 сатр */
-            overflow: hidden; 
-            margin: 0; 
-            display: -webkit-box;
-            -webkit-line-clamp: 2; /* 2 сатр */
-            -webkit-box-orient: vertical;
-        }
-
-        /* Тугмаи Связь - Мутобиқ ба скриншот */
         .btn-buy {
-            background: var(--button-blue);
-            color: white;
-            border: none;
-            padding: 8px; /* Паддинги бештар */
-            border-radius: 6px; /* Курнашакл */
-            font-size: 11px;
-            font-weight: 600;
-            width: 100%;
-            cursor: pointer;
-            margin-top: 8px;
-            transition: background 0.3s ease;
-        }
-        .btn-buy:hover {
-            background: #1976D2; /* Каме ториктар */
+            background: var(--btn-blue); color: white; border: none;
+            padding: 8px; border-radius: 6px; font-size: 11px;
+            width: 100%; cursor: pointer; font-weight: 600;
         }
 
-        /* Тугмаи Удалить (Барои Админ) */
         .btn-del {
-            background: var(--button-red);
-            color: white;
-            border: none;
-            padding: 6px;
-            font-size: 10px;
-            border-radius: 6px;
-            margin-top: 5px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        .btn-del:hover {
-            background: #D32F2F; /* Каме ториктар */
+            background: var(--btn-red); color: white; border: none;
+            padding: 5px; font-size: 10px; border-radius: 4px; 
+            margin-top: 6px; cursor: pointer; opacity: 0.8;
         }
 
-        /* Модал барои Bio */
+        /* МОДАЛ БАРОИ BIO */
         .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; 
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); /* Сояи бештар */
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 15px; /* Барои телефони хурд */
-            box-sizing: border-box;
+            display: none; position: fixed; top: 0; left: 0; 
+            width: 100%; height: 100%; background: rgba(0,0,0,0.8);
+            z-index: 1000; justify-content: center; align-items: center;
         }
         .modal-box {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 15px;
-            width: 100%; /* Барои телефони хурд */
-            max-width: 400px; /* Ҳадди аксар */
-            text-align: center;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-            animation: fadeIn 0.3s ease-out;
+            background: #fff; padding: 25px;
+            border-radius: 20px; width: 85%; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
-        .modal-box h3 {
-            margin-top: 0;
-            color: var(--text-color);
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-        .modal-box p {
-            color: var(--secondary-text);
-            font-size: 14px;
-            margin-bottom: 20px;
-            white-space: pre-wrap; /* Барои нигоҳ доштани форматрозии Bio */
-        }
-        .modal-box button {
-            padding: 10px 25px;
-            border: none;
-            border-radius: 8px;
-            background: var(--button-blue);
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        .modal-box button:hover {
-            background: #1976D2;
-        }
-
-        #loading {
-            text-align: center;
-            padding: 20px;
-            font-weight: bold;
-            color: var(--secondary-text);
-            font-size: 16px;
-        }
-
-        /* Анимация барои модал */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        .modal-box h3 { margin-top: 0; color: #333; }
+        .modal-box p { color: #666; font-size: 15px; line-height: 1.5; margin-bottom: 20px; }
+        .modal-box button { background: var(--btn-blue); color: #fff; border: none; padding: 10px 25px; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -259,22 +118,22 @@
     <header>MURODOV FF SHOP</header>
 
     <div id="adminPanel">
-        <h3 style="margin-top:0">Панели Админ</h3>
-        <input type="text" id="itemName" placeholder="Номи аккаунт (м: легендарный аккаунт)">
-        <input type="text" id="itemPrice" placeholder="Нарх (м: 300 TJS)">
-        <textarea id="itemBio" placeholder="Маълумот дар бораи аккаунт"></textarea>
-        <label style="font-size:12px; color:var(--secondary-text); margin-bottom: 5px; display: block;">Интихоби сурат аз галерея:</label>
+        <h3>➕ Иловаи мол (Админ)</h3>
+        <input type="text" id="itemName" placeholder="Номи аккаунт (м: AK-47 Dragon)">
+        <input type="text" id="itemPrice" placeholder="Нарх (м: 250 TJS)">
+        <textarea id="itemBio" rows="3" placeholder="Маълумоти пурра (Bio)"></textarea>
+        <label style="font-size:12px; color:#777; margin-bottom:5px; display:block;">Суратро интихоб кунед:</label>
         <input type="file" id="itemFile" accept="image/*">
-        <button class="btn-add" id="addBtn" onclick="addProduct()">Илова кардан</button>
+        <button class="btn-add" id="addBtn" onclick="addProduct()">ДОБАВИТЬ ПРОДУКТ</button>
     </div>
 
-    <div id="loading">Боргирии молҳо...</div>
+    <div id="loading" style="text-align:center; padding:30px; font-weight:bold; color:#999;">Боргирии молҳо...</div>
     <div class="product-grid" id="mainGrid"></div>
 
     <div id="bioModal" class="modal">
         <div class="modal-box">
             <h3 id="mTitle"></h3>
-            <p id="mText" style="white-space: pre-wrap;"></p>
+            <p id="mText"></p>
             <button onclick="document.getElementById('bioModal').style.display='none'">Бастан</button>
         </div>
     </div>
@@ -283,32 +142,30 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Иди админ аз скриншоти шумо (Ман инро аз скриншоти пештара гирифтам)
+        // 1. ИДИ ШУМО АЗ СКРИНШОТ
         const ADMIN_ID = 8406121228; 
 
-        // Суроғаи Firebase аз скриншоти шумо
-        const DB_URL = "https://shop-murodov-ff-default-rtdb.firebaseio.com/";
+        // 2. СУРОҒАИ FIREBASE
+        const DB_URL = "https://shop-murodov-ff-default-rtdb.firebaseio.com/products";
 
-        // Санҷиши ҳуқуқи админ
+        // Танҳо Ismoil панелро мебинад
         if (tg.initDataUnsafe.user && tg.initDataUnsafe.user.id === ADMIN_ID) {
             document.getElementById('adminPanel').style.display = 'block';
         }
 
-        // Боргирии молҳо аз Firebase
+        // БОРГИРИИ МОЛҲО
         async function loadItems() {
             const grid = document.getElementById('mainGrid');
             const loader = document.getElementById('loading');
             
             try {
-                // Илова кардани .json барои Firebase REST API
                 const res = await fetch(`${DB_URL}.json`);
                 const data = await res.json();
                 
                 grid.innerHTML = '';
-                loader.style.display = 'none'; // Боркунӣ анҷом ёфт
+                loader.style.display = 'none';
 
                 if (data) {
-                    // Аз охир ба аввал нишон додан
                     Object.keys(data).reverse().forEach(id => {
                         const item = data[id];
                         grid.innerHTML += `
@@ -326,25 +183,24 @@
                             </div>`;
                     });
                 } else {
-                    grid.innerHTML = "<p style='grid-column:1/4; text-align:center; color:var(--secondary-text);'>Ҳоло мол нест.</p>";
+                    grid.innerHTML = "<p style='grid-column:1/4; text-align:center; color:#999;'>Ҳоло мол нест.</p>";
                 }
             } catch (e) {
-                loader.innerText = "Хатогӣ ҳангоми боргирӣ! Лутфан пайвастшавиро санҷед ё Rules-ро дар Firebase ислоҳ кунед.";
-                loader.style.color = var(--button-red);
+                loader.innerText = "Хато дар пайвастшавӣ!";
             }
         }
 
-        // Илова кардани мол (Функсияи админ)
+        // ИЛОВА КАРДАНИ МОЛ
         function addProduct() {
             const btn = document.getElementById('addBtn');
-            const name = document.getElementById('itemName').value.trim();
-            const price = document.getElementById('itemPrice').value.trim();
-            const bio = document.getElementById('itemBio').value.trim();
+            const name = document.getElementById('itemName').value;
+            const price = document.getElementById('itemPrice').value;
+            const bio = document.getElementById('itemBio').value;
             const fileInput = document.getElementById('itemFile');
             const file = fileInput.files[0];
 
             if (!name || !price || !file) {
-                alert("Лутфан ҳамаи сатрҳоро пур кунед ва суратро интихоб намоед!");
+                alert("Ҳамаро пур кунед!");
                 return;
             }
 
@@ -353,8 +209,7 @@
 
             const reader = new FileReader();
             reader.onload = async function(e) {
-                const imgBase64 = e.target.result;
-                const newItem = { name, price, bio, img: imgBase64 };
+                const newItem = { name, price, bio, img: e.target.result };
 
                 try {
                     const response = await fetch(`${DB_URL}.json`, {
@@ -362,63 +217,42 @@
                         body: JSON.stringify(newItem)
                     });
 
-                    if (!response.ok) {
-                        // Агар хатогӣ аз Firebase бошад, паёмро аниқтар мекунем
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || "Хатогӣ ҳангоми иловаи мол.");
-                    }
+                    if (!response.ok) throw new Error();
                     
-                    alert("Мол бо муваффақият илова шуд!");
-                    
-                    // Тоза кардани форма
                     document.getElementById('itemName').value = '';
                     document.getElementById('itemPrice').value = '';
                     document.getElementById('itemBio').value = '';
-                    fileInput.value = ''; // Тоза кардани интихоби файл
+                    fileInput.value = '';
                     
-                    loadItems(); // Навсозии рӯйхати молҳо
+                    alert("Муваффақият!");
+                    loadItems();
                 } catch (err) {
-                    console.error("Firebase Add Error:", err);
-                    alert("Хатогӣ! Лутфан Rules-ро дар Firebase санҷед ё бо администратор тамос гиред. Тафсилот: " + err.message);
+                    alert("Хато! Rules-ро дар Firebase Publish кунед!");
                 } finally {
                     btn.disabled = false;
-                    btn.innerText = "Илова кардан";
+                    btn.innerText = "ДОБАВИТЬ ПРОДУКТ";
                 }
             };
             reader.readAsDataURL(file);
         }
 
-        // Нест кардани мол (Функсияи админ)
         async function deleteItem(id) {
-            if (confirm("Оё мехоҳед ин аккаунт ва суратро нест кунед? Ин амал бозгашт надорад!")) {
-                try {
-                    const response = await fetch(`${DB_URL}/${id}.json`, { method: 'DELETE' });
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || "Хатогӣ ҳангоми нест кардани мол.");
-                    }
-                    alert("Мол бо муваффақият нест карда шуд!");
-                    loadItems(); // Навсозии рӯйхати молҳо
-                } catch (err) {
-                    console.error("Firebase Delete Error:", err);
-                    alert("Хатогӣ! Мол нест нашуд. Тафсилот: " + err.message);
-                }
+            if (confirm("Нест карда шавад?")) {
+                await fetch(`${DB_URL}/${id}.json`, { method: 'DELETE' });
+                loadItems();
             }
         }
 
-        // Кушодани модал бо маълумоти Bio
-        function showBio(title, bioText) {
-            document.getElementById('mTitle').innerText = title;
-            document.getElementById('mText').innerText = bioText || "Маълумоти иловагӣ нест.";
+        function showBio(t, b) {
+            document.getElementById('mTitle').innerText = t;
+            document.getElementById('mText').innerText = b || "Маълумот нест.";
             document.getElementById('bioModal').style.display = 'flex';
         }
 
-        // Пайвастшавӣ ба админ
         function contact() {
             tg.openTelegramLink("https://t.me/ff_murodov");
         }
 
-        // Оғози боргирии молҳо ҳангоми кушодани саҳифа
         loadItems();
     </script>
 </body>
