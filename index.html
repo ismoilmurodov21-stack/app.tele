@@ -7,79 +7,69 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-dark: #0f0f0f;
-            --card-dark: #1a1a1a;
-            --accent-gold: #FFC107;
-            --text-main: #f0f0f0;
-            --price-green: #4CAF50;
-            --btn-red: #ff4444;
+            --bg-dark: #0a0a0a;
+            --card-dark: #161616;
+            --accent: #FFC107;
+            --text: #ffffff;
+            --gray: #888;
+            --green: #2ecc71;
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            margin: 0; padding: 8px;
-            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            margin: 0; padding: 12px;
         }
 
         header {
-            background: var(--accent-gold);
+            background: var(--accent);
             color: #000;
             padding: 15px; text-align: center;
             font-weight: 900; border-radius: 12px;
-            margin-bottom: 15px; font-size: 20px;
+            margin-bottom: 20px; text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
         }
 
         #adminPanel {
             background: var(--card-dark);
             padding: 15px; border-radius: 12px;
-            margin-bottom: 20px; border: 1px solid #333;
+            margin-bottom: 25px; border: 1px dashed var(--accent);
             display: none;
         }
 
         input, textarea {
-            width: 100%; margin-bottom: 10px;
+            width: 100%; margin-bottom: 12px;
             padding: 12px; border: 1px solid #333;
             border-radius: 8px; box-sizing: border-box;
-            background: #252525; color: #fff;
+            background: #222; color: #fff; outline: none;
         }
 
         .btn-add {
-            background: var(--price-green);
-            color: white; border: none; padding: 14px;
+            background: var(--green);
+            color: white; border: none; padding: 15px;
             width: 100%; border-radius: 8px; font-weight: bold;
             cursor: pointer;
         }
 
         .product-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            grid-template-columns: repeat(2, 1fr); /* 2 мол дар як қатор барои сифати хуб */
+            gap: 12px;
         }
 
         .card {
             background: var(--card-dark);
-            border-radius: 10px; overflow: hidden;
+            border-radius: 12px; overflow: hidden;
             display: flex; flex-direction: column;
-            border: 1px solid #2a2a2a;
+            border: 1px solid #222;
+            transition: transform 0.2s;
         }
 
         .slider-container {
             width: 100%; aspect-ratio: 1/1;
-            position: relative; background: #222;
-        }
-
-        .skeleton {
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, #1a1a1a 25%, #333 50%, #1a1a1a 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+            position: relative; background: #111;
+            cursor: pointer;
         }
 
         .slider-img {
@@ -88,19 +78,27 @@
         }
         .slider-img.active { display: block; }
 
-        .card-content { padding: 8px; }
-        .price { color: var(--price-green); font-weight: 800; font-size: 13px; }
-        .name { font-size: 10px; color: #bbb; margin: 4px 0; height: 24px; overflow: hidden; }
+        .img-counter {
+            position: absolute; bottom: 8px; right: 8px;
+            background: rgba(0,0,0,0.7); padding: 2px 8px;
+            border-radius: 10px; font-size: 10px; color: var(--accent);
+        }
+
+        .card-content { padding: 10px; }
+        .price { color: var(--green); font-weight: 900; font-size: 16px; margin-bottom: 4px; }
+        .name { font-size: 12px; color: var(--gray); height: 32px; overflow: hidden; margin-bottom: 10px; }
 
         .btn-buy {
-            background: #333; color: var(--accent-gold); border: 1px solid var(--accent-gold);
-            padding: 6px; border-radius: 6px; font-size: 11px; width: 100%; font-weight: bold;
+            background: transparent; color: var(--accent); border: 1px solid var(--accent);
+            padding: 8px; border-radius: 6px; font-size: 12px; width: 100%; font-weight: bold;
         }
 
         .btn-del {
-            background: var(--btn-red); color: white; border: none;
-            padding: 4px; font-size: 9px; border-radius: 4px; margin-top: 5px; width: 100%;
+            background: #331111; color: #ff4444; border: 1px solid #441111;
+            padding: 5px; font-size: 10px; border-radius: 4px; margin-top: 8px; width: 100%;
         }
+
+        #loading-text { text-align: center; color: var(--accent); margin-top: 50px; }
     </style>
 </head>
 <body>
@@ -108,14 +106,16 @@
     <header>MURODOV FF SHOP</header>
 
     <div id="adminPanel">
-        <input type="text" id="itemName" placeholder="Номи аккаунт">
-        <input type="text" id="itemPrice" placeholder="Нарх">
-        <textarea id="itemBio" rows="2" placeholder="Маълумот"></textarea>
+        <input type="text" id="itemName" placeholder="Номи аккаунт (масалан: Олд 2017)">
+        <input type="text" id="itemPrice" placeholder="Нарх (масалан: 150)">
+        <textarea id="itemBio" rows="3" placeholder="Маълумоти пурра дар бораи аккаунт..."></textarea>
+        <p style="font-size:11px; color:var(--gray)">Якчанд суратро интихоб кунед:</p>
         <input type="file" id="itemFiles" accept="image/*" multiple>
         <button class="btn-add" id="addBtn" onclick="addProduct()">ОПУБЛИКОВАТЬ</button>
-        <div id="progress" style="font-size:12px; color:var(--accent-gold); text-align:center; margin-top:5px;"></div>
+        <div id="progress" style="font-size:12px; color:var(--accent); text-align:center; margin-top:10px;"></div>
     </div>
 
+    <div id="loading-text">Боргирии молҳо...</div>
     <div class="product-grid" id="mainGrid"></div>
 
     <script>
@@ -129,7 +129,6 @@
             document.getElementById('adminPanel').style.display = 'block';
         }
 
-        // Фишурдани сурат
         async function compressImage(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -139,23 +138,49 @@
                     img.src = e.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        canvas.width = 400; 
-                        canvas.height = 400;
-                        canvas.getContext('2d').drawImage(img, 0, 0, 400, 400);
-                        resolve(canvas.toDataURL('image/jpeg', 0.6));
+                        const MAX_WIDTH = 500;
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7));
                     };
                 };
             });
         }
 
-        // Боргирии молҳо
+        // Функсия барои иваз кардани сурат дар карточка
+        function nextImg(el, id) {
+            const imgs = el.querySelectorAll('.slider-img');
+            let activeIdx = 0;
+            imgs.forEach((img, idx) => {
+                if (img.classList.contains('active')) activeIdx = idx;
+            });
+            imgs[activeIdx].classList.remove('active');
+            const nextIdx = (activeIdx + 1) % imgs.length;
+            imgs[nextIdx].classList.add('active');
+            el.querySelector('.img-counter').innerText = `${nextIdx + 1}/${imgs.length}`;
+        }
+
         async function loadItems() {
             const grid = document.getElementById('mainGrid');
+            const loader = document.getElementById('loading-text');
             try {
                 const res = await fetch(`${DB_URL}.json`);
                 const data = await res.json();
+                loader.style.display = 'none';
                 grid.innerHTML = '';
-                if (!data) return;
+                
+                if (!data) {
+                    loader.innerText = "Молҳо нестанд.";
+                    loader.style.display = 'block';
+                    return;
+                }
 
                 Object.keys(data).reverse().forEach(id => {
                     const item = data[id];
@@ -163,30 +188,29 @@
                     
                     const card = document.createElement('div');
                     card.className = 'card';
+                    
+                    let imgHtml = '';
+                    imgs.forEach((src, index) => {
+                        imgHtml += `<img src="${src}" class="slider-img ${index === 0 ? 'active' : ''}">`;
+                    });
+
                     card.innerHTML = `
-                        <div class="slider-container" id="s-${id}">
-                            <div class="skeleton"></div>
+                        <div class="slider-container" onclick="nextImg(this, '${id}')">
+                            ${imgHtml}
+                            <div class="img-counter">1/${imgs.length}</div>
                         </div>
                         <div class="card-content">
-                            <div class="price">${item.price}</div>
+                            <div class="price">${item.price} TJS</div>
                             <div class="name">${item.name}</div>
                             <button class="btn-buy" onclick="contact()">Связь</button>
                             ${tg.initDataUnsafe.user?.id === ADMIN_ID ? `<button class="btn-del" onclick="deleteItem('${id}')">Удалить</button>` : ''}
                         </div>
                     `;
                     grid.appendChild(card);
-
-                    // Баъди сохтани рамка, суратро мемонем
-                    const imgObj = new Image();
-                    imgObj.src = imgs[0];
-                    imgObj.className = 'slider-img active';
-                    imgObj.onload = () => {
-                        const cont = document.getElementById(`s-${id}`);
-                        cont.innerHTML = '';
-                        cont.appendChild(imgObj);
-                    };
                 });
-            } catch (e) { console.log("Хато ҳангоми боргирӣ"); }
+            } catch (e) { 
+                loader.innerText = "Хато дар пайвастшавӣ!";
+            }
         }
 
         async function addProduct() {
@@ -194,28 +218,35 @@
             const files = document.getElementById('itemFiles').files;
             const prog = document.getElementById('progress');
             
-            if (files.length === 0) return alert("Сурат интихоб кунед!");
+            if (files.length === 0) return alert("Ками дар кам 1 сурат интихоб кунед!");
             
             btn.disabled = true;
+            btn.innerText = "Дар ҳоли боргузорӣ...";
             const compressed = [];
+            
             for (let i = 0; i < files.length; i++) {
-                prog.innerText = `Коркард: ${i+1}/${files.length}`;
+                prog.innerText = `Коркарди сурат: ${i+1}/${files.length}`;
                 compressed.push(await compressImage(files[i]));
             }
 
             const newItem = {
-                name: document.getElementById('itemName').value,
-                price: document.getElementById('itemPrice').value,
-                bio: document.getElementById('itemBio').value,
+                name: document.getElementById('itemName').value || "Бидуни ном",
+                price: document.getElementById('itemPrice').value || "0",
+                bio: document.getElementById('itemBio').value || "",
                 imgs: compressed
             };
 
-            await fetch(`${DB_URL}.json`, { method: 'POST', body: JSON.stringify(newItem) });
-            location.reload();
+            try {
+                await fetch(`${DB_URL}.json`, { method: 'POST', body: JSON.stringify(newItem) });
+                location.reload();
+            } catch (e) {
+                alert("Хато шуд!");
+                btn.disabled = false;
+            }
         }
 
         async function deleteItem(id) {
-            if (confirm("Нест кунем?")) {
+            if (confirm("Ин молро нест кунем?")) {
                 await fetch(`${DB_URL}/${id}.json`, { method: 'DELETE' });
                 loadItems();
             }
