@@ -7,59 +7,34 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --bg: #121212; --card: #1e1e1e; --text: #fff; }
-        body { 
-            font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px;
-            animation: fastShow 0.01s steps(1); /* Виден продукты за 0.01 секунд */
-        }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; animation: fastShow 0.01s steps(1); }
         @keyframes fastShow { from { opacity: 0; } to { opacity: 1; } }
-        
-        .header { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #333; }
         .product-card { background: var(--card); border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #333; }
-        .photo-box { width: 100%; height: 150px; background: #2a2a2a; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
-        
-        .btn { padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; }
-        .btn-buy { background: #27ae60; color: white; margin-top: 10px; }
+        .photo-box { width: 100%; height: 180px; background: #2a2a2a; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; }
+        .photo-box img { width: 100%; height: 100%; object-fit: cover; }
+        .btn { padding: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
+        .btn-buy { background: #27ae60; color: white; }
         .btn-delete { background: #c0392b; color: white; width: auto; margin-bottom: 10px; display: none; }
         .btn-add-main { background: #2980b9; color: white; display: none; margin-top: 20px; }
-
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
         .admin-form { background: white; color: black; width: 85%; padding: 20px; border-radius: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .admin-form input { padding: 12px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; }
-        
-        .nav-btns { display: flex; gap: 20px; margin-top: 15px; }
+        .admin-form input { padding: 12px; border-radius: 10px; border: 1px solid #ccc; }
+        .admin-ui { display: none; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <span onclick="tg.close()">×</span>
+        <span onclick="window.Telegram.WebApp.close()" style="cursor:pointer; font-size:24px;">×</span>
         <strong>Shop MURODOV FF</strong>
         <span id="adminStatus" style="font-size: 10px; color: #555;">User</span>
     </div>
 
     <div id="productList">
-        <div class="product-card">
-            <button class="btn btn-delete admin-ui" onclick="this.parentElement.remove()">УДАЛИТЬ</button>
-            <div class="photo-box" onclick="openGallery()">
-                <span style="font-size:24px">Photo</span>
-                <span style="font-size:10px; color:#888">добавить 1 до 20 фо</span>
-            </div>
-            <div style="margin: 10px 0;">цена: 0.00</div>
-            <button class="btn btn-buy">КУПИТЬ</button>
         </div>
-    </div>
 
-    <button id="addBtn" class="btn btn-add-main admin-ui" onclick="openAdminPanel()">+ ДОБАВИТЬ ПРОДУКТ</button>
-
-    <div id="galleryModal" class="modal">
-        <span style="position:absolute; top:20px; right:20px; font-size:30px" onclick="closeModals()">×</span>
-        <div style="width:250px; height:300px; background:#333; display:flex; align-items:center; justify-content:center; font-size:30px">Photo 1</div>
-        <p>1 из 10 фото</p>
-        <div class="nav-btns">
-            <button class="btn" style="background:#444; color:white">назад</button>
-            <button class="btn" style="background:#444; color:white">след</button>
-        </div>
-    </div>
+    <button class="btn btn-add-main admin-ui" onclick="openAdminPanel()">+ ДОБАВИТЬ ПРОДУКТ</button>
 
     <div id="adminModal" class="modal">
         <div class="admin-form">
@@ -67,7 +42,11 @@
             <input type="text" id="inPrice" placeholder="ЦЕНА">
             <input type="text" id="inOwner" placeholder="ВЛАДЕЛЕЦ">
             <input type="text" id="inDesc" placeholder="ОПИСАНИЯ АКК">
-            <button class="btn" style="background:#555; color:white">ВЫБР ФОТО из галерия</button>
+            
+            <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="previewFile()">
+            <button class="btn" style="background:#555; color:white" onclick="document.getElementById('fileInput').click()">ВЫБР ФОТО из галерия</button>
+            <div id="imgPreview" style="height: 50px; text-align: center; font-size: 12px; color: green; display: none;">Акс интихоб шуд!</div>
+
             <button class="btn" style="background:#27ae60; color:white" onclick="addNewProduct()">СОХРАНИТЬ</button>
             <button class="btn" style="background:#ccc;" onclick="closeModals()">ОТМЕНА</button>
         </div>
@@ -77,38 +56,51 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        // ВАЖНО: Впишите сюда ваш Telegram ID
         const ADMIN_ID = 8406121228; 
+        let selectedImageData = ""; // Барои нигоҳ доштани акс
 
-        // Проверка: админ вы или нет
-        const user = tg.initDataUnsafe?.user;
-        if (user && user.id === ADMIN_ID) {
+        if (tg.initDataUnsafe?.user?.id === ADMIN_ID) {
             document.querySelectorAll('.admin-ui').forEach(el => el.style.display = 'block');
             document.getElementById('adminStatus').innerText = "ADMIN";
-            document.getElementById('adminStatus').style.color = "orange";
         }
 
-        function openAdminPanel() { document.getElementById('adminModal').style.display = 'flex'; }
-        function openGallery() { document.getElementById('galleryModal').style.display = 'flex'; }
+        function openAdminPanel() { 
+            document.getElementById('adminModal').style.display = 'flex'; 
+        }
+
         function closeModals() { 
-            document.getElementById('adminModal').style.display = 'none'; 
-            document.getElementById('galleryModal').style.display = 'none'; 
+            document.getElementById('adminModal').style.display = 'none';
+            selectedImageData = "";
+            document.getElementById('imgPreview').style.display = 'none';
+        }
+
+        // Функсияи хондани акс аз галерея
+        function previewFile() {
+            const file = document.getElementById('fileInput').files[0];
+            const reader = new FileReader();
+            reader.onloadend = function() {
+                selectedImageData = reader.result;
+                document.getElementById('imgPreview').style.display = 'block';
+            }
+            if (file) { reader.readAsDataURL(file); }
         }
 
         function addNewProduct() {
             const price = document.getElementById('inPrice').value;
             const owner = document.getElementById('inOwner').value;
-            
+            const desc = document.getElementById('inDesc').value;
+            const photoSrc = selectedImageData || "https://via.placeholder.com/150";
+
             const card = document.createElement('div');
             card.className = 'product-card';
             card.innerHTML = `
                 <button class="btn btn-delete admin-ui" style="display:block" onclick="this.parentElement.remove()">УДАЛИТЬ</button>
-                <div class="photo-box" onclick="openGallery()">
-                    <span style="font-size:24px">Photo</span>
-                    <span style="font-size:10px; color:#888">Владелец: ${owner}</span>
+                <div class="photo-box">
+                    <img src="${photoSrc}">
                 </div>
-                <div style="margin: 10px 0;">цена: ${price}</div>
-                <button class="btn btn-buy">КУПИТЬ</button>
+                <div style="margin: 10px 0;">Владелец: ${owner}</div>
+                <div style="font-weight:bold; color:#2ecc71;">цена: ${price}</div>
+                <button class="btn btn-buy" onclick="alert('Заказ: ${desc}')">КУПИТЬ</button>
             `;
             document.getElementById('productList').appendChild(card);
             closeModals();
