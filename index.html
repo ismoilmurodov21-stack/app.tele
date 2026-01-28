@@ -1,260 +1,118 @@
 <!DOCTYPE html>
-<html lang="tg">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MURODOV FF SHOP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop MURODOV FF</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --bg-dark: #0a0a0a;
-            --card-dark: #161616;
-            --accent: #FFC107;
-            --text: #ffffff;
-            --gray: #888;
-            --green: #2ecc71;
+        :root { --bg: #121212; --card: #1e1e1e; --text: #fff; }
+        body { 
+            font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px;
+            animation: fastShow 0.01s steps(1); /* Виден продукты за 0.01 секунд */
         }
+        @keyframes fastShow { from { opacity: 0; } to { opacity: 1; } }
+        
+        .header { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
+        .product-card { background: var(--card); border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #333; }
+        .photo-box { width: 100%; height: 150px; background: #2a2a2a; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+        
+        .btn { padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; }
+        .btn-buy { background: #27ae60; color: white; margin-top: 10px; }
+        .btn-delete { background: #c0392b; color: white; width: auto; margin-bottom: 10px; display: none; }
+        .btn-add-main { background: #2980b9; color: white; display: none; margin-top: 20px; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-dark);
-            color: var(--text);
-            margin: 0; padding: 12px;
-        }
-
-        header {
-            background: var(--accent);
-            color: #000;
-            padding: 15px; text-align: center;
-            font-weight: 900; border-radius: 12px;
-            margin-bottom: 20px; text-transform: uppercase;
-            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
-        }
-
-        #adminPanel {
-            background: var(--card-dark);
-            padding: 15px; border-radius: 12px;
-            margin-bottom: 25px; border: 1px dashed var(--accent);
-            display: none;
-        }
-
-        input, textarea {
-            width: 100%; margin-bottom: 12px;
-            padding: 12px; border: 1px solid #333;
-            border-radius: 8px; box-sizing: border-box;
-            background: #222; color: #fff; outline: none;
-        }
-
-        .btn-add {
-            background: var(--green);
-            color: white; border: none; padding: 15px;
-            width: 100%; border-radius: 8px; font-weight: bold;
-            cursor: pointer;
-        }
-
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2 мол дар як қатор барои сифати хуб */
-            gap: 12px;
-        }
-
-        .card {
-            background: var(--card-dark);
-            border-radius: 12px; overflow: hidden;
-            display: flex; flex-direction: column;
-            border: 1px solid #222;
-            transition: transform 0.2s;
-        }
-
-        .slider-container {
-            width: 100%; aspect-ratio: 1/1;
-            position: relative; background: #111;
-            cursor: pointer;
-        }
-
-        .slider-img {
-            width: 100%; height: 100%; object-fit: cover;
-            display: none;
-        }
-        .slider-img.active { display: block; }
-
-        .img-counter {
-            position: absolute; bottom: 8px; right: 8px;
-            background: rgba(0,0,0,0.7); padding: 2px 8px;
-            border-radius: 10px; font-size: 10px; color: var(--accent);
-        }
-
-        .card-content { padding: 10px; }
-        .price { color: var(--green); font-weight: 900; font-size: 16px; margin-bottom: 4px; }
-        .name { font-size: 12px; color: var(--gray); height: 32px; overflow: hidden; margin-bottom: 10px; }
-
-        .btn-buy {
-            background: transparent; color: var(--accent); border: 1px solid var(--accent);
-            padding: 8px; border-radius: 6px; font-size: 12px; width: 100%; font-weight: bold;
-        }
-
-        .btn-del {
-            background: #331111; color: #ff4444; border: 1px solid #441111;
-            padding: 5px; font-size: 10px; border-radius: 4px; margin-top: 8px; width: 100%;
-        }
-
-        #loading-text { text-align: center; color: var(--accent); margin-top: 50px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
+        .admin-form { background: white; color: black; width: 85%; padding: 20px; border-radius: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .admin-form input { padding: 12px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; }
+        
+        .nav-btns { display: flex; gap: 20px; margin-top: 15px; }
     </style>
 </head>
 <body>
 
-    <header>MURODOV FF SHOP</header>
-
-    <div id="adminPanel">
-        <input type="text" id="itemName" placeholder="Номи аккаунт (масалан: Олд 2017)">
-        <input type="text" id="itemPrice" placeholder="Нарх (масалан: 150)">
-        <textarea id="itemBio" rows="3" placeholder="Маълумоти пурра дар бораи аккаунт..."></textarea>
-        <p style="font-size:11px; color:var(--gray)">Якчанд суратро интихоб кунед:</p>
-        <input type="file" id="itemFiles" accept="image/*" multiple>
-        <button class="btn-add" id="addBtn" onclick="addProduct()">ОПУБЛИКОВАТЬ</button>
-        <div id="progress" style="font-size:12px; color:var(--accent); text-align:center; margin-top:10px;"></div>
+    <div class="header">
+        <span onclick="tg.close()">×</span>
+        <strong>Shop MURODOV FF</strong>
+        <span id="adminStatus" style="font-size: 10px; color: #555;">User</span>
     </div>
 
-    <div id="loading-text">Боргирии молҳо...</div>
-    <div class="product-grid" id="mainGrid"></div>
+    <div id="productList">
+        <div class="product-card">
+            <button class="btn btn-delete admin-ui" onclick="this.parentElement.remove()">УДАЛИТЬ</button>
+            <div class="photo-box" onclick="openGallery()">
+                <span style="font-size:24px">Photo</span>
+                <span style="font-size:10px; color:#888">добавить 1 до 20 фо</span>
+            </div>
+            <div style="margin: 10px 0;">цена: 0.00</div>
+            <button class="btn btn-buy">КУПИТЬ</button>
+        </div>
+    </div>
+
+    <button id="addBtn" class="btn btn-add-main admin-ui" onclick="openAdminPanel()">+ ДОБАВИТЬ ПРОДУКТ</button>
+
+    <div id="galleryModal" class="modal">
+        <span style="position:absolute; top:20px; right:20px; font-size:30px" onclick="closeModals()">×</span>
+        <div style="width:250px; height:300px; background:#333; display:flex; align-items:center; justify-content:center; font-size:30px">Photo 1</div>
+        <p>1 из 10 фото</p>
+        <div class="nav-btns">
+            <button class="btn" style="background:#444; color:white">назад</button>
+            <button class="btn" style="background:#444; color:white">след</button>
+        </div>
+    </div>
+
+    <div id="adminModal" class="modal">
+        <div class="admin-form">
+            <h3 style="text-align:center; margin:0">ПАНЕЛЬ АДМИН</h3>
+            <input type="text" id="inPrice" placeholder="ЦЕНА">
+            <input type="text" id="inOwner" placeholder="ВЛАДЕЛЕЦ">
+            <input type="text" id="inDesc" placeholder="ОПИСАНИЯ АКК">
+            <button class="btn" style="background:#555; color:white">ВЫБР ФОТО из галерия</button>
+            <button class="btn" style="background:#27ae60; color:white" onclick="addNewProduct()">СОХРАНИТЬ</button>
+            <button class="btn" style="background:#ccc;" onclick="closeModals()">ОТМЕНА</button>
+        </div>
+    </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
+        let tg = window.Telegram.WebApp;
         tg.expand();
 
+        // ВАЖНО: Впишите сюда ваш Telegram ID
         const ADMIN_ID = 8406121228; 
-        const DB_URL = "https://shop-murodov-ff-default-rtdb.firebaseio.com/products";
 
-        if (tg.initDataUnsafe.user?.id === ADMIN_ID) {
-            document.getElementById('adminPanel').style.display = 'block';
+        // Проверка: админ вы или нет
+        const user = tg.initDataUnsafe?.user;
+        if (user && user.id === ADMIN_ID) {
+            document.querySelectorAll('.admin-ui').forEach(el => el.style.display = 'block');
+            document.getElementById('adminStatus').innerText = "ADMIN";
+            document.getElementById('adminStatus').style.color = "orange";
         }
 
-        async function compressImage(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 500;
-                        let width = img.width;
-                        let height = img.height;
-                        if (width > MAX_WIDTH) {
-                            height *= MAX_WIDTH / width;
-                            width = MAX_WIDTH;
-                        }
-                        canvas.width = width;
-                        canvas.height = height;
-                        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7));
-                    };
-                };
-            });
+        function openAdminPanel() { document.getElementById('adminModal').style.display = 'flex'; }
+        function openGallery() { document.getElementById('galleryModal').style.display = 'flex'; }
+        function closeModals() { 
+            document.getElementById('adminModal').style.display = 'none'; 
+            document.getElementById('galleryModal').style.display = 'none'; 
         }
 
-        // Функсия барои иваз кардани сурат дар карточка
-        function nextImg(el, id) {
-            const imgs = el.querySelectorAll('.slider-img');
-            let activeIdx = 0;
-            imgs.forEach((img, idx) => {
-                if (img.classList.contains('active')) activeIdx = idx;
-            });
-            imgs[activeIdx].classList.remove('active');
-            const nextIdx = (activeIdx + 1) % imgs.length;
-            imgs[nextIdx].classList.add('active');
-            el.querySelector('.img-counter').innerText = `${nextIdx + 1}/${imgs.length}`;
-        }
-
-        async function loadItems() {
-            const grid = document.getElementById('mainGrid');
-            const loader = document.getElementById('loading-text');
-            try {
-                const res = await fetch(`${DB_URL}.json`);
-                const data = await res.json();
-                loader.style.display = 'none';
-                grid.innerHTML = '';
-                
-                if (!data) {
-                    loader.innerText = "Молҳо нестанд.";
-                    loader.style.display = 'block';
-                    return;
-                }
-
-                Object.keys(data).reverse().forEach(id => {
-                    const item = data[id];
-                    const imgs = item.imgs || [item.img];
-                    
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    
-                    let imgHtml = '';
-                    imgs.forEach((src, index) => {
-                        imgHtml += `<img src="${src}" class="slider-img ${index === 0 ? 'active' : ''}">`;
-                    });
-
-                    card.innerHTML = `
-                        <div class="slider-container" onclick="nextImg(this, '${id}')">
-                            ${imgHtml}
-                            <div class="img-counter">1/${imgs.length}</div>
-                        </div>
-                        <div class="card-content">
-                            <div class="price">${item.price} TJS</div>
-                            <div class="name">${item.name}</div>
-                            <button class="btn-buy" onclick="contact()">Связь</button>
-                            ${tg.initDataUnsafe.user?.id === ADMIN_ID ? `<button class="btn-del" onclick="deleteItem('${id}')">Удалить</button>` : ''}
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-            } catch (e) { 
-                loader.innerText = "Хато дар пайвастшавӣ!";
-            }
-        }
-
-        async function addProduct() {
-            const btn = document.getElementById('addBtn');
-            const files = document.getElementById('itemFiles').files;
-            const prog = document.getElementById('progress');
+        function addNewProduct() {
+            const price = document.getElementById('inPrice').value;
+            const owner = document.getElementById('inOwner').value;
             
-            if (files.length === 0) return alert("Ками дар кам 1 сурат интихоб кунед!");
-            
-            btn.disabled = true;
-            btn.innerText = "Дар ҳоли боргузорӣ...";
-            const compressed = [];
-            
-            for (let i = 0; i < files.length; i++) {
-                prog.innerText = `Коркарди сурат: ${i+1}/${files.length}`;
-                compressed.push(await compressImage(files[i]));
-            }
-
-            const newItem = {
-                name: document.getElementById('itemName').value || "Бидуни ном",
-                price: document.getElementById('itemPrice').value || "0",
-                bio: document.getElementById('itemBio').value || "",
-                imgs: compressed
-            };
-
-            try {
-                await fetch(`${DB_URL}.json`, { method: 'POST', body: JSON.stringify(newItem) });
-                location.reload();
-            } catch (e) {
-                alert("Хато шуд!");
-                btn.disabled = false;
-            }
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            card.innerHTML = `
+                <button class="btn btn-delete admin-ui" style="display:block" onclick="this.parentElement.remove()">УДАЛИТЬ</button>
+                <div class="photo-box" onclick="openGallery()">
+                    <span style="font-size:24px">Photo</span>
+                    <span style="font-size:10px; color:#888">Владелец: ${owner}</span>
+                </div>
+                <div style="margin: 10px 0;">цена: ${price}</div>
+                <button class="btn btn-buy">КУПИТЬ</button>
+            `;
+            document.getElementById('productList').appendChild(card);
+            closeModals();
         }
-
-        async function deleteItem(id) {
-            if (confirm("Ин молро нест кунем?")) {
-                await fetch(`${DB_URL}/${id}.json`, { method: 'DELETE' });
-                loadItems();
-            }
-        }
-
-        function contact() { tg.openTelegramLink("https://t.me/ff_murodov"); }
-
-        loadItems();
     </script>
 </body>
 </html>
