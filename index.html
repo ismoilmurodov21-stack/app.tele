@@ -11,8 +11,9 @@
         @keyframes fastShow { from { opacity: 0; } to { opacity: 1; } }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #333; }
         .product-card { background: var(--card); border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #333; }
-        .photo-box { width: 100%; height: 180px; background: #2a2a2a; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; }
+        .photo-box { width: 100%; height: 200px; background: #2a2a2a; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; }
         .photo-box img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-count { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 10px; font-size: 12px; }
         .btn { padding: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
         .btn-buy { background: #27ae60; color: white; }
         .btn-delete { background: #c0392b; color: white; width: auto; margin-bottom: 10px; display: none; }
@@ -21,6 +22,8 @@
         .admin-form { background: white; color: black; width: 85%; padding: 20px; border-radius: 20px; display: flex; flex-direction: column; gap: 10px; }
         .admin-form input { padding: 12px; border-radius: 10px; border: 1px solid #ccc; }
         .admin-ui { display: none; }
+        .nav-gallery { display: flex; justify-content: space-between; width: 100%; position: absolute; top: 50%; transform: translateY(-50%); padding: 0 10px; box-sizing: border-box; pointer-events: none; }
+        .nav-gallery button { pointer-events: auto; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; }
     </style>
 </head>
 <body>
@@ -31,8 +34,7 @@
         <span id="adminStatus" style="font-size: 10px; color: #555;">User</span>
     </div>
 
-    <div id="productList">
-        </div>
+    <div id="productList"></div>
 
     <button class="btn btn-add-main admin-ui" onclick="openAdminPanel()">+ ДОБАВИТЬ ПРОДУКТ</button>
 
@@ -43,11 +45,11 @@
             <input type="text" id="inOwner" placeholder="ВЛАДЕЛЕЦ">
             <input type="text" id="inDesc" placeholder="ОПИСАНИЯ АКК">
             
-            <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="previewFile()">
-            <button class="btn" style="background:#555; color:white" onclick="document.getElementById('fileInput').click()">ВЫБР ФОТО из галерия</button>
-            <div id="imgPreview" style="height: 50px; text-align: center; font-size: 12px; color: green; display: none;">Акс интихоб шуд!</div>
+            <input type="file" id="fileInput" accept="image/*" multiple style="display: none;" onchange="handleFiles(this.files)">
+            <button class="btn" style="background:#555; color:white" onclick="document.getElementById('fileInput').click()">ВЫБР ФОТО (то 20 фо)</button>
+            <div id="fileStatus" style="text-align: center; font-size: 12px; color: green;"></div>
 
-            <button class="btn" style="background:#27ae60; color:white" onclick="addNewProduct()">СОХРАНИТЬ</button>
+            <button class="btn" style="background:#27ae60; color:white" onclick="saveProduct()">СОХРАНИТЬ</button>
             <button class="btn" style="background:#ccc;" onclick="closeModals()">ОТМЕНА</button>
         </div>
     </div>
@@ -57,11 +59,24 @@
         tg.expand();
 
         const ADMIN_ID = 8406121228; 
-        let selectedImageData = ""; // Барои нигоҳ доштани акс
+        let currentFiles = []; // Массиви аксҳо
 
         if (tg.initDataUnsafe?.user?.id === ADMIN_ID) {
             document.querySelectorAll('.admin-ui').forEach(el => el.style.display = 'block');
             document.getElementById('adminStatus').innerText = "ADMIN";
+        }
+
+        function handleFiles(files) {
+            currentFiles = [];
+            const count = Math.min(files.length, 20);
+            for (let i = 0; i < count; i++) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    currentFiles.push(e.target.result);
+                    document.getElementById('fileStatus').innerText = `Интихоб шуд: ${currentFiles.length} акс`;
+                };
+                reader.readAsDataURL(files[i]);
+            }
         }
 
         function openAdminPanel() { 
@@ -70,40 +85,55 @@
 
         function closeModals() { 
             document.getElementById('adminModal').style.display = 'none';
-            selectedImageData = "";
-            document.getElementById('imgPreview').style.display = 'none';
+            currentFiles = [];
+            document.getElementById('fileStatus').innerText = "";
         }
 
-        // Функсияи хондани акс аз галерея
-        function previewFile() {
-            const file = document.getElementById('fileInput').files[0];
-            const reader = new FileReader();
-            reader.onloadend = function() {
-                selectedImageData = reader.result;
-                document.getElementById('imgPreview').style.display = 'block';
-            }
-            if (file) { reader.readAsDataURL(file); }
-        }
-
-        function addNewProduct() {
+        function saveProduct() {
             const price = document.getElementById('inPrice').value;
             const owner = document.getElementById('inOwner').value;
             const desc = document.getElementById('inDesc').value;
-            const photoSrc = selectedImageData || "https://via.placeholder.com/150";
 
+            if (currentFiles.length === 0) return alert("Ақаллан 1 акс интихоб кунед");
+
+            const productId = Date.now();
             const card = document.createElement('div');
             card.className = 'product-card';
             card.innerHTML = `
                 <button class="btn btn-delete admin-ui" style="display:block" onclick="this.parentElement.remove()">УДАЛИТЬ</button>
-                <div class="photo-box">
-                    <img src="${photoSrc}">
+                <div class="photo-box" id="box-${productId}">
+                    <img src="${currentFiles[0]}" id="img-${productId}">
+                    <div class="photo-count" id="count-${productId}">1 из ${currentFiles.length}</div>
+                    <div class="nav-gallery">
+                        <button onclick="changePhoto('${productId}', -1)">❮</button>
+                        <button onclick="changePhoto('${productId}', 1)">❯</button>
+                    </div>
                 </div>
                 <div style="margin: 10px 0;">Владелец: ${owner}</div>
                 <div style="font-weight:bold; color:#2ecc71;">цена: ${price}</div>
                 <button class="btn btn-buy" onclick="alert('Заказ: ${desc}')">КУПИТЬ</button>
             `;
+            
+            // Нигоҳ доштани рӯйхати аксҳо дар атрибути элемент
+            card.dataset.photos = JSON.stringify(currentFiles);
+            card.dataset.current = 0;
+
             document.getElementById('productList').appendChild(card);
             closeModals();
+        }
+
+        function changePhoto(id, dir) {
+            const card = document.getElementById(`box-${id}`).parentElement;
+            const photos = JSON.parse(card.dataset.photos);
+            let current = parseInt(card.dataset.current);
+
+            current += dir;
+            if (current >= photos.length) current = 0;
+            if (current < 0) current = photos.length - 1;
+
+            card.dataset.current = current;
+            document.getElementById(`img-${id}`).src = photos[current];
+            document.getElementById(`count-${id}`).innerText = `${current + 1} из ${photos.length}`;
         }
     </script>
 </body>
